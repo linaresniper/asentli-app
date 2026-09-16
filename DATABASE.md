@@ -7,7 +7,7 @@ lista **todas las tablas** y explica qué guarda cada una.
 
 1. Cómo leer este documento
 2. Cómo está la autenticación (sin Supabase Auth)
-3. Tablas **nuevas** (creadas por nosotros): `expenses`, `budgets`
+3. Tablas **nuevas** (creadas por nosotros): `expenses`, `budgets`, `user_profile`
 4. Tablas **heredadas** (del compañero): panorama
 5. Consulta SQL para obtener el esquema real
 6. Políticas de RLS activas
@@ -19,9 +19,9 @@ lista **todas las tablas** y explica qué guarda cada una.
 
 Hay **dos grupos** de tablas:
 
-- **Nuevas** — `expenses` y `budgets`. Las creamos nosotros con el archivo
-  `supabase/expenses_budgets.sql`. Acá están **documentadas al 100%** porque
-  tenemos el SQL.
+- **Nuevas** — `expenses`, `budgets` y `user_profile`. Las creamos nosotros con
+  los archivos `supabase/expenses_budgets.sql` y `supabase/user_profile.sql`.
+  Acá están **documentadas al 100%** porque tenemos el SQL.
 
 - **Heredadas** — `usuario`, `compra`, `billetera`, etc. Las creó el compañero
   **antes** de este trabajo, directamente en el panel de Supabase. **Su SQL no
@@ -107,6 +107,39 @@ necesidad de lógica extra. Guardar se hace con `upsert` (`insert` o `update`
 según exista o no la fila) — ver `useSetBudget` en `useExpenseData.js`.
 
 **Relaciones:** ninguna FK, igual que `expenses`.
+
+---
+
+### 3.3 `user_profile` — datos del perfil que Clerk no maneja
+
+Qué guarda: hoy, **solo el teléfono** de cada usuario. Se edita en la pantalla
+**Edit Profile**.
+
+Por qué existe esta tabla y no se usa `usuario`: Clerk ya maneja nombre, email
+y foto de perfil — no hace falta duplicarlos en Supabase. Pero Clerk no tiene
+un campo de "teléfono de contacto" simple (tiene números de teléfono, pero con
+verificación por SMS, que no está configurada). Y `usuario` **no tiene ninguna
+columna para vincularla con el id de Clerk** (ver sección 2), así que no se
+puede simplemente "agregar el teléfono ahí" sin antes sumarle una columna
+nueva — eso es una decisión que hay que acordar con el compañero, no algo que
+se resuelve solo. Mientras tanto, esta tabla chica desbloquea la pantalla de
+perfil sin tocar nada de él.
+
+| Columna | Tipo | Qué es |
+|---|---|---|
+| `user_id` | `text` (**PK**) | Id del usuario de Clerk. Una fila por usuario, igual que `budgets` |
+| `phone` | `text` (opcional) | Teléfono de contacto, texto libre |
+| `updated_at` | `timestamptz` | Última vez que se cambió. Por defecto `now()` |
+
+**Relaciones:** ninguna FK. No toca `usuario` ni ninguna tabla heredada.
+
+**Quién la lee/escribe:** `src/hooks/useUserProfile.js` (`useProfile`,
+`useSetProfile`).
+
+> El nombre, el email y la foto de perfil **no** están en esta tabla — viven en
+> Clerk y se leen con `useUser()` (`user.firstName`, `user.lastName`,
+> `user.primaryEmailAddress`, `user.imageUrl`). Cambiarlos usa métodos de Clerk
+> (`user.update()`, `user.setProfileImage()`), no Supabase.
 
 ---
 
@@ -237,8 +270,9 @@ Ver `ARCHITECTURE.md`, sección 6, para qué es RLS.
 
 ### 6.1 En las tablas nuevas (sabemos que están activas)
 
-`supabase/expenses_budgets.sql` activa RLS en `expenses` y `budgets` y crea
-**7 políticas**. Todas usan la misma regla base:
+`supabase/expenses_budgets.sql` activa RLS en `expenses` y `budgets`, y
+`supabase/user_profile.sql` la activa en `user_profile`. Entre los dos scripts
+son **10 políticas**. Todas usan la misma regla base:
 `(select auth.jwt() ->> 'sub') = user_id`
 → _"solo si el usuario del token es el dueño de la fila"_.
 
@@ -251,24 +285,27 @@ Ver `ARCHITECTURE.md`, sección 6, para qué es RLS.
 | `budgets` | `budgets_select_own` | `SELECT` | Solo ves tu presupuesto |
 | `budgets` | `budgets_insert_own` | `INSERT` | Solo creás tu propio presupuesto |
 | `budgets` | `budgets_update_own` | `UPDATE` | Solo editás tu presupuesto |
+| `user_profile` | `user_profile_select_own` | `SELECT` | Solo ves tu propio teléfono |
+| `user_profile` | `user_profile_insert_own` | `INSERT` | Solo creás tu propia fila |
+| `user_profile` | `user_profile_update_own` | `UPDATE` | Solo editás tu propia fila |
 
-> `budgets` no tiene política de `DELETE`: la app nunca borra un presupuesto,
-> solo lo actualiza (`upsert`).
+> `budgets` y `user_profile` no tienen política de `DELETE`: la app nunca
+> borra esas filas, solo las actualiza (`upsert`).
 
-Además, el script hace `grant select, insert, update, delete ... to authenticated`
-→ le da esos permisos base al rol `authenticated` (los usuarios logueados), y la
+Además, los scripts hacen `grant select, insert, update [, delete] ... to authenticated`
+→ le dan esos permisos base al rol `authenticated` (los usuarios logueados), y la
 RLS los recorta a "solo lo tuyo".
 
 **Verificar que están bien:**
 
 ```sql
--- Deben salir 2 filas, ambas con rowsecurity = true
+-- Deben salir 3 filas, todas con rowsecurity = true
 select relname, relrowsecurity from pg_class
-where relname in ('expenses','budgets');
+where relname in ('expenses','budgets','user_profile');
 
--- Deben salir 7 filas
+-- Deben salir 10 filas
 select tablename, policyname, cmd from pg_policies
-where tablename in ('expenses','budgets') order by 1,3;
+where tablename in ('expenses','budgets','user_profile') order by 1,3;
 ```
 
 ### 6.2 En las tablas heredadas (desconocido)
@@ -284,8 +321,8 @@ confirmarlo con el equipo aunque la app actual no las use.
 
 ## 7. Convención de nombres
 
-- **Tablas nuevas:** inglés y `snake_case` → `expenses`, `budgets`, `spent_at`,
-  `monthly_total`.
+- **Tablas nuevas:** inglés y `snake_case` → `expenses`, `budgets`,
+  `user_profile`, `spent_at`, `monthly_total`.
 - **Tablas heredadas:** español → `compra`, `fecha_compra`, `id_usuario`.
 
 Es una inconsistencia conocida. Si el equipo prefiere unificar (por ejemplo

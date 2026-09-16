@@ -17,6 +17,9 @@ import HomeScreen from './src/screens/HomeScreen';
 import CardScreen from './src/screens/CardScreen';
 import AIAssistantScreen from './src/screens/AIAssistantScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
+import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+import PlaceholderScreen from './src/screens/PlaceholderScreen';
 
 import AddExpenseScreen from './src/screens/AddExpenseScreen';
 import EditBudgetScreen from './src/screens/EditBudgetScreen';
@@ -228,6 +231,25 @@ function MainApp({ needsTerms }) {
 
       {screen === 'profile' && (
         <ProfileScreen onBack={back} onNavigate={go} />
+      )}
+
+      {screen === 'editProfile' && (
+        <EditProfileScreen onBack={back} onSaved={() => go('profile')} />
+      )}
+
+      {screen === 'changePassword' && (
+        <ChangePasswordScreen onBack={back} onSaved={() => go('profile')} />
+      )}
+
+      {screen === 'family' && (
+        <PlaceholderScreen
+          title="Family members"
+          onBack={back}
+          onNavigate={go}
+          activeTab="Profile"
+          emoji="👨‍👩‍👧‍👦"
+          message="Próximamente: varios miembros de una familia compartiendo presupuesto."
+        />
       )}
     </>
   );

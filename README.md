@@ -84,6 +84,10 @@ menciona donde corresponde, pero el foco es la app.
 - **@react-native-community/datetimepicker** — el selector de fecha nativo, usado
   en "Agregar gasto".
 
+- **expo-image-picker** — abre la cámara o la galería del teléfono para elegir
+  la foto de perfil. La sube Clerk directamente (`user.setProfileImage`); esta
+  librería solo se encarga de "elegir la imagen", no de guardarla.
+
 ### Landing web
 
 - **React** + **Vite** — Vite es el "bundler" (empaquetador) y servidor de
@@ -131,6 +135,7 @@ asentli/
 │   │
 │   ├── hooks/              # Hooks propios:
 │   │   ├── useExpenseData.js  # leer/escribir gastos y presupuesto en Supabase
+│   │   ├── useUserProfile.js  # teléfono (Supabase) + nombre/foto/contraseña (Clerk)
 │   │   └── useGoogleAuth.js   # login con Google vía Clerk
 │   │
 │   ├── constants/
@@ -141,6 +146,7 @@ asentli/
 │
 └── supabase/
     ├── expenses_budgets.sql  # el SQL que crea las tablas expenses y budgets
+    ├── user_profile.sql      # el SQL que crea la tabla user_profile (teléfono)
     └── MIGRATION_NOTES.md    # notas para quien administra la base de datos
 ```
 

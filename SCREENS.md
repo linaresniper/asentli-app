@@ -126,7 +126,17 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
   AIAssistantScreen ───────────"Ver la comparación"▶ PriceComparerScreen
 
   Casi todas las pantallas secundarias:  campana 🔔 ──▶ NotificationsScreen
-  ProfileScreen ──"Sign out"──▶ (cierra sesión en Clerk → vuelve a WelcomeScreen)
+
+  ProfileScreen
+     ├─ tocar la foto ───────────▶ elegir "Tomar foto" / "Elegir de galería" (sube a Clerk)
+     ├─ lápiz ✎ / "Edit profile" ▶ EditProfileScreen ──(guardar)──▶ ProfileScreen
+     ├─ "Change password" ───────▶ ChangePasswordScreen ──(guardar)──▶ ProfileScreen
+     ├─ "My Card" ────────────────▶ CardScreen
+     ├─ "Family members" ─────────▶ PlaceholderScreen ("Próximamente")
+     ├─ "Budget Details" ─────────▶ BudgetDetailsScreen
+     ├─ "Purchase History" ───────▶ PurchaseHistoryScreen
+     ├─ "Rewards (Cashback)" ─────▶ RewardsScreen
+     └─ "Sign out" ───────────────▶ (cierra sesión en Clerk → vuelve a WelcomeScreen)
 ```
 
 ---
@@ -194,11 +204,20 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 - **Datos:** todo escrito a mano (`SECTIONS`, `COMPARATOR`).
 - **Navega a:** shoppingStore, priceComparer, budgetDetails.
 
-### `ProfileScreen.js` — 🔵 Clerk + 🟠
-- **Muestra:** nombre y correo del usuario (**🔵** `useUser`); menús "Account",
-  "Security & support" (**🟠** listas fijas, no funcionales); switch Face ID
-  (**🟠**, no hace nada); botón **Sign out**.
-- **Qué hace:** "Sign out" → `signOut()` de Clerk → la app vuelve a Welcome.
+### `ProfileScreen.js` — 🔵 Clerk + 🟢 Supabase
+- **Muestra:** foto de perfil (**🔵** `user.imageUrl`, o un ícono por defecto si
+  no tiene), nombre y correo (**🔵** `useUser`); menú **Account** (Edit profile,
+  Change password, My Card, Family members) y **Your money** (Budget Details,
+  Purchase History, Rewards) — **todos los botones llevan a una pantalla real**,
+  nada decorativo; botón **Sign out**.
+- **Qué hace:**
+  - Tocar la foto → elegir "Tomar foto" o "Elegir de galería"
+    (`expo-image-picker`) → sube la imagen con `user.setProfileImage()` de
+    Clerk. Mientras sube, muestra un spinner sobre la foto; si falla, alerta de
+    error (no falla en silencio).
+  - "Sign out" → `signOut()` de Clerk → la app vuelve a Welcome.
+- **Navega a:** editProfile, changePassword, card, family, budgetDetails,
+  purchaseHistory, rewards, notifications.
 
 ---
 
@@ -222,6 +241,23 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
   (con sugerencias de `KNOWN_MERCHANTS`), fecha (selector nativo), nota.
 - **Qué hace:** `useAddExpense()` → `insert` en la tabla `expenses` con tu
   `user_id` de Clerk. Al guardar, vuelve a Home.
+
+### `EditProfileScreen.js` — 🔵 Clerk + 🟢 Supabase (lectura + escritura)
+- **Muestra:** Nombre y Apellido (precargados de Clerk), Teléfono (precargado
+  de `user_profile`), Email (solo lectura — cambiarlo es otro flujo de Clerk
+  con verificación, no está conectado todavía).
+- **Qué hace:** al guardar, corre dos cosas en paralelo: `user.update({
+  firstName, lastName })` (Clerk) y `useSetProfile()` → `upsert` en
+  `user_profile` (Supabase). Si cualquiera falla, muestra el error y no vuelve
+  a Profile.
+
+### `ChangePasswordScreen.js` — 🔵 Clerk (escritura)
+- **Muestra:** contraseña actual (solo si la cuenta tiene una — las cuentas que
+  entraron solo con Google todavía no tienen contraseña), nueva contraseña,
+  confirmar.
+- **Qué hace:** `user.updatePassword()`. Si la cuenta no tiene contraseña
+  (`user.passwordEnabled === false`), la crea sin pedir la actual. Mensajes de
+  error traducidos con `clerkErrors.js` (ej. contraseña actual incorrecta).
 
 ### `EditBudgetScreen.js` — 🟢 Supabase (lectura + escritura)
 - **Muestra:** un campo para el presupuesto mensual, precargado con el valor
@@ -280,9 +316,13 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 - **Navega a:** availableOffers.
 
 ### `PlaceholderScreen.js` — 🟠
-- **Muestra:** "🚧 Esta pantalla está en construcción".
-- **Uso:** comodín reutilizable. Hoy `App.js` no lo usa en ninguna ruta, pero
-  está listo por si se agrega una pestaña nueva sin pantalla.
+- **Muestra:** un emoji + un mensaje, ambos configurables por props (por
+  defecto "🚧" / "Esta pantalla está en construcción").
+- **Uso:** comodín reutilizable. Hoy lo usa la ruta `family` (Profile → "Family
+  members") con `emoji="👨‍👩‍👧‍👦"` y el mensaje "Próximamente: varios miembros de
+  una familia compartiendo presupuesto" — el botón existe a propósito, es un
+  feature real pensado para más adelante, no algo decorativo que simula hacer
+  algo que no hace.
 
 ---
 
@@ -299,7 +339,9 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 | HomeScreen | 🟢+🟠 | `useMonthExpenses`, `useBudget` |
 | StatisticsScreen | 🟢 | `usePeriodExpenses` |
 | BasketScreen | 🟠 | — |
-| ProfileScreen | 🔵+🟠 | `useUser`, `useAuth` |
+| ProfileScreen | 🔵+🟢 | `useUser`, `useAuth`, `useUpdateProfilePhoto` |
+| EditProfileScreen | 🔵+🟢 | `useUser`, `useUpdateName`, `useProfile`, `useSetProfile` |
+| ChangePasswordScreen | 🔵 | `useUpdatePassword` |
 | CardScreen | 🟢+🟠 | `useBudget`, `useMonthExpenses`, `useRecentExpenses` |
 | AIAssistantScreen | 🟠 | — |
 | AddExpenseScreen | 🟢 (escribe) | `useAddExpense` |
@@ -315,8 +357,11 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 | DiscountsOffersScreen | 🟠 | — |
 | PlaceholderScreen | 🟠 | — |
 
-> Resumen: **7 pantallas** ya leen/escriben datos reales de Supabase. El resto de
-> la app es diseño con datos de ejemplo, listo para conectarse.
+> Resumen: **7 pantallas** ya leen/escriben datos reales de Supabase, y
+> **3 más** (`ProfileScreen`, `EditProfileScreen`, `ChangePasswordScreen`) leen
+> y escriben datos reales de Clerk (y, las primeras dos, también de
+> `user_profile` en Supabase). El resto de la app es diseño con datos de
+> ejemplo, listo para conectarse.
 
 ---
 
@@ -331,7 +376,7 @@ En `src/components/`:
 | `Fab.js` | Botón flotante redondo "+" (abajo a la derecha), usado en Home para "Add expense" |
 | `EmptyState.js` | Bloque "todavía no hay datos" con ícono, título y subtítulo. Usado en las pantallas 🟢 cuando no hay gastos |
 | `GoogleButton.js` | Botón "Continuar con Google". Usado en Login y Sign up |
-| `ui.js` | Varios en un archivo: `SearchBar`, `Chips` (píldoras horizontales), `ProgressBar`, `SectionHeader`, `PillButton`, `Thumb` (miniatura con ícono), `ViewMore` |
+| `ui.js` | Varios en un archivo: `SearchBar`, `Chips` (píldoras horizontales), `ProgressBar`, `SectionHeader`, `PillButton`, `Thumb` (miniatura con ícono, o con `imageUri` para mostrar una foto real — la usa Profile para la foto de Clerk), `ViewMore` |
 
 Otros lugares de apoyo:
 

@@ -24,7 +24,14 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Asentli necesita acceso a tus fotos para elegir una imagen de perfil.",
+          "cameraPermission": "Asentli necesita acceso a la cámara para tomar una foto de perfil."
+        }
+      ]
     ]
   }
 }

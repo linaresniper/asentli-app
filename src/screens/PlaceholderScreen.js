@@ -4,14 +4,21 @@ import { colors } from '../theme/colors';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 
-export default function PlaceholderScreen({ title, onBack, onNavigate, activeTab }) {
+export default function PlaceholderScreen({
+  title,
+  onBack,
+  onNavigate,
+  activeTab,
+  emoji = '🚧',
+  message = 'Esta pantalla está en construcción',
+}) {
   return (
     <View style={styles.flex}>
       <ScreenHeader title={title} onBack={onBack} />
 
       <View style={styles.content}>
-        <Text style={styles.emoji}>🚧</Text>
-        <Text style={styles.message}>Esta pantalla está en construcción</Text>
+        <Text style={styles.emoji}>{emoji}</Text>
+        <Text style={styles.message}>{message}</Text>
       </View>
 
       <BottomNav active={activeTab} onNavigate={onNavigate} />

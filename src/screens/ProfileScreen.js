@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { colors } from '../theme/colors';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { Thumb } from '../components/ui';
+import { useUpdateProfilePhoto } from '../hooks/useUserProfile';
 
 const ACCOUNT = [
-  { key: 'account', icon: 'person-outline', label: 'Account details' },
+  { key: 'editProfile', icon: 'person-outline', label: 'Edit profile' },
+  { key: 'changePassword', icon: 'lock-closed-outline', label: 'Change password' },
+  { key: 'card', icon: 'card-outline', label: 'My Card' },
   { key: 'family', icon: 'people-outline', label: 'Family members' },
-  { key: 'billing', icon: 'card-outline', label: 'Payment methods' },
 ];
 
-const SUPPORT = [
-  { key: 'password', icon: 'lock-closed-outline', label: 'Password' },
-  { key: 'settings', icon: 'settings-outline', label: 'Settings' },
-  { key: 'help', icon: 'help-circle-outline', label: 'Help & support' },
+const MONEY = [
+  { key: 'budgetDetails', icon: 'pie-chart-outline', label: 'Budget Details' },
+  { key: 'purchaseHistory', icon: 'receipt-outline', label: 'Purchase History' },
+  { key: 'rewards', icon: 'gift-outline', label: 'Rewards (Cashback)' },
 ];
 
 function MenuRow({ item, onPress, last }) {
@@ -36,16 +39,16 @@ function MenuRow({ item, onPress, last }) {
 }
 
 export default function ProfileScreen({ onBack, onNavigate, onLogout }) {
-  const [faceId, setFaceId] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
   const { signOut } = useAuth();
   const { user } = useUser();
+  const updatePhoto = useUpdateProfilePhoto();
+
+  const go = (key) => onNavigate && onNavigate(key);
 
   const displayName = user?.fullName || user?.username || 'Tu familia';
   const displayEmail =
-    user?.primaryEmailAddress?.emailAddress ||
-    user?.emailAddresses?.[0]?.emailAddress ||
-    '';
+    user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '';
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -59,19 +62,82 @@ export default function ProfileScreen({ onBack, onNavigate, onLogout }) {
     }
   };
 
+  const uploadPhoto = (uri) => {
+    updatePhoto.mutate(uri, {
+      onError: () =>
+        Alert.alert('Error', 'No se pudo actualizar la foto de perfil. Intentá de nuevo.'),
+    });
+  };
+
+  const fromCamera = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permiso necesario', 'Activá el acceso a la cámara en los ajustes del teléfono.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled) uploadPhoto(result.assets[0].uri);
+  };
+
+  const fromLibrary = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permiso necesario', 'Activá el acceso a tus fotos en los ajustes del teléfono.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled) uploadPhoto(result.assets[0].uri);
+  };
+
+  const handleChangePhoto = () => {
+    if (updatePhoto.isPending) return;
+    Alert.alert('Foto de perfil', 'Elegí una opción', [
+      { text: 'Tomar foto', onPress: fromCamera },
+      { text: 'Elegir de galería', onPress: fromLibrary },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
+
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Profile" onBack={onBack} onBell={() => onNavigate && onNavigate('notifications')} />
+      <ScreenHeader title="Profile" onBack={onBack} onBell={() => go('notifications')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Identity card */}
         <View style={styles.profileCard}>
-          <Thumb icon="person" bg={colors.card} color={colors.bottleGreen} size={60} radius={30} />
+          <TouchableOpacity onPress={handleChangePhoto} style={styles.avatarWrap} activeOpacity={0.8}>
+            <Thumb
+              icon="person"
+              bg={colors.card}
+              color={colors.bottleGreen}
+              size={60}
+              radius={30}
+              imageUri={user?.hasImage ? user.imageUrl : undefined}
+            />
+            <View style={styles.avatarBadge}>
+              {updatePhoto.isPending ? (
+                <ActivityIndicator size="small" color={colors.card} />
+              ) : (
+                <Ionicons name="camera" size={13} color={colors.card} />
+              )}
+            </View>
+          </TouchableOpacity>
+
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{displayName}</Text>
             {!!displayEmail && <Text style={styles.email}>{displayEmail}</Text>}
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => go('editProfile')}>
             <Ionicons name="create-outline" size={20} color={colors.bottleGreen} />
           </TouchableOpacity>
         </View>
@@ -80,27 +146,15 @@ export default function ProfileScreen({ onBack, onNavigate, onLogout }) {
         <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.menuCard}>
           {ACCOUNT.map((item, i) => (
-            <MenuRow key={item.key} item={item} last={i === ACCOUNT.length - 1} />
+            <MenuRow key={item.key} item={item} last={i === ACCOUNT.length - 1} onPress={() => go(item.key)} />
           ))}
         </View>
 
-        {/* Security & support */}
-        <Text style={styles.sectionTitle}>Security & support</Text>
+        {/* Your money */}
+        <Text style={styles.sectionTitle}>Your money</Text>
         <View style={styles.menuCard}>
-          <View style={[styles.row, styles.rowBorder]}>
-            <View style={styles.rowLeft}>
-              <Ionicons name="scan-outline" size={20} color={colors.bottleGreen} />
-              <Text style={styles.rowLabel}>Face ID</Text>
-            </View>
-            <Switch
-              value={faceId}
-              onValueChange={setFaceId}
-              trackColor={{ false: colors.border, true: colors.saladGreen }}
-              thumbColor={colors.card}
-            />
-          </View>
-          {SUPPORT.map((item, i) => (
-            <MenuRow key={item.key} item={item} last={i === SUPPORT.length - 1} />
+          {MONEY.map((item, i) => (
+            <MenuRow key={item.key} item={item} last={i === MONEY.length - 1} onPress={() => go(item.key)} />
           ))}
         </View>
 
@@ -133,6 +187,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     marginBottom: 24,
+  },
+  avatarWrap: { position: 'relative' },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.bottleGreen,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.lightGreen,
   },
   profileInfo: { flex: 1 },
   name: { fontSize: 18, fontWeight: '800', color: colors.text },

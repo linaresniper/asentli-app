@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Image,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -98,8 +99,24 @@ export function PillButton({ label, onPress, variant = 'orange', icon, style }) 
   );
 }
 
-/* Rounded placeholder thumbnail with a glyph. Avoids the JPG-transparency issues. */
-export function Thumb({ icon = 'image', bg = colors.lightGreen, color = colors.bottleGreen, size = 44, radius = 12 }) {
+/* Rounded placeholder thumbnail with a glyph. Avoids the JPG-transparency issues.
+   Pass `imageUri` to show a real photo instead (e.g. the Clerk avatar). */
+export function Thumb({
+  icon = 'image',
+  bg = colors.lightGreen,
+  color = colors.bottleGreen,
+  size = 44,
+  radius = 12,
+  imageUri,
+}) {
+  if (imageUri) {
+    return (
+      <Image
+        source={{ uri: imageUri }}
+        style={{ width: size, height: size, borderRadius: radius }}
+      />
+    );
+  }
   return (
     <View style={[styles.thumb, { width: size, height: size, borderRadius: radius, backgroundColor: bg }]}>
       <Ionicons name={icon} size={Math.round(size * 0.5)} color={color} />
