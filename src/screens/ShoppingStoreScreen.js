@@ -1,47 +1,68 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { SearchBar, ViewMore, Thumb } from '../components/ui';
+import EmptyState from '../components/EmptyState';
+import { useStoreProducts } from '../hooks/useCatalog';
+import { useCategoryLabel } from '../hooks/useCategoryLabel';
+import { CATEGORIES, categoryIcon } from '../constants/categories';
+import { formatMoney } from '../lib/dates';
 
-const CATEGORIES = [
-  { key: 'All', icon: 'grid' },
-  { key: 'Grains', icon: 'leaf' },
-  { key: 'Dairy', icon: 'cafe' },
-  { key: 'Meat', icon: 'restaurant' },
-  { key: 'Beverages', icon: 'wine' },
-];
-
-const PRODUCTS = [
-  { id: 'p1', name: 'Red beans', price: '$1.20', unit: 'Pound', icon: 'nutrition' },
-  { id: 'p2', name: 'White rice', price: '$0.95', unit: 'Pound', icon: 'nutrition' },
-  { id: 'p3', name: 'Milk 1L', price: '$1.10', unit: 'Unit', icon: 'cafe' },
-  { id: 'p4', name: 'Eggs (15)', price: '$2.30', unit: 'Carton', icon: 'ellipse' },
-  { id: 'p5', name: 'Chicken breast', price: '$2.75', unit: 'Pound', icon: 'restaurant' },
-  { id: 'p6', name: 'Corn flour', price: '$0.85', unit: 'Pound', icon: 'nutrition' },
-];
+const ALL = 'All';
 
 export default function ShoppingStoreScreen({ onBack, onNavigate, onBell, onViewMore }) {
+  const { t } = useTranslation('shopping');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const categoryLabel = useCategoryLabel();
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState(ALL);
+  // Carrito local: el botón "Add" de cada producto antes no tenía onPress —
+  // se veía tocable y no pasaba nada. Hasta que haya carrito real en
+  // Supabase, al menos cuenta de verdad lo que agregás en esta sesión, y el
+  // badge refleja ese número en vez del "3" que estaba escrito a mano.
+  const [cartCount, setCartCount] = useState(0);
+
+  const { data, isLoading, isError } = useStoreProducts();
+  const products = data ?? [];
+
+  // Los chips de categoría se derivan del catálogo, no de una lista escrita a
+  // mano: así `other` (que la canasta básica no usa — ver CATALOG.md) no
+  // aparece como una pestaña vacía, y si mañana entra un producto de una
+  // categoría nueva el chip sale solo.
+  const tabs = useMemo(() => {
+    const present = new Set(products.map((p) => p.category));
+    return [ALL, ...CATEGORIES.map((c) => c.key).filter((k) => present.has(k))];
+  }, [products]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return products
+      .filter((p) => (category === ALL ? true : p.category === category))
+      .filter((p) => (q ? p.name.toLowerCase().includes(q) : true));
+  }, [products, category, query]);
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Shopping Store" onBack={onBack} onBell={onBell} />
+      <ScreenHeader title={t('shoppingStore.title')} onBack={onBack} onBell={onBell} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <SearchBar
-          placeholder="Search products..."
+          placeholder={t('shoppingStore.searchPlaceholder')}
           value={query}
           onChangeText={setQuery}
           right={
             <View>
-              <Ionicons name="cart" size={20} color={colors.bottleGreen} />
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>3</Text>
-              </View>
+              <Ionicons name="cart" size={20} color={colors.bottleGreenText} />
+              {cartCount > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                </View>
+              )}
             </View>
           }
         />
@@ -51,35 +72,64 @@ export default function ShoppingStoreScreen({ onBack, onNavigate, onBell, onView
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.catRow}
         >
-          {CATEGORIES.map((c) => {
-            const active = c.key === category;
+          {tabs.map((key) => {
+            const active = key === category;
             return (
-              <TouchableOpacity key={c.key} style={styles.catItem} onPress={() => setCategory(c.key)}>
+              <TouchableOpacity key={key} style={styles.catItem} onPress={() => setCategory(key)}>
                 <View style={[styles.catCircle, active && styles.catCircleActive]}>
-                  <Ionicons name={c.icon} size={20} color={active ? colors.card : colors.bottleGreen} />
+                  <Ionicons
+                    name={key === ALL ? 'grid' : categoryIcon(key)}
+                    size={20}
+                    color={active ? '#FFFFFF' : colors.bottleGreenText}
+                  />
                 </View>
-                <Text style={[styles.catLabel, active && styles.catLabelActive]}>{c.key}</Text>
+                <Text style={[styles.catLabel, active && styles.catLabelActive]}>
+                  {key === ALL ? t('shoppingStore.cat_All') : categoryLabel(key)}
+                </Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Recommended Products</Text>
-        <View style={styles.grid}>
-          {PRODUCTS.map((p) => (
-            <View key={p.id} style={styles.gridCard}>
-              <Thumb icon={p.icon} bg={colors.lightGreen} size={56} radius={14} />
-              <Text style={styles.productName}>{p.name}</Text>
-              <Text style={styles.productUnit}>{p.unit}</Text>
-              <View style={styles.priceRow}>
-                <Text style={styles.productPrice}>{p.price}</Text>
-                <TouchableOpacity style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>Add</Text>
-                </TouchableOpacity>
+        <Text style={styles.sectionTitle}>{t('shoppingStore.recommendedProducts')}</Text>
+        {isLoading ? (
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 30 }} />
+        ) : isError ? (
+          <EmptyState
+            icon="cloud-offline-outline"
+            title={t('shoppingStore.loadError')}
+            subtitle={t('shoppingStore.loadErrorHint')}
+          />
+        ) : visible.length === 0 ? (
+          <EmptyState compact title={t('shoppingStore.empty')} />
+        ) : (
+          <View style={styles.grid}>
+            {visible.map((p) => (
+              <View key={p.id} style={styles.gridCard}>
+                <Thumb icon={p.icon || categoryIcon(p.category)} bg={colors.lightGreen} size={56} radius={14} />
+                <Text style={styles.productName} numberOfLines={2}>{p.name}</Text>
+                <Text style={styles.productUnit}>{p.unit}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.productPrice}>
+                    {p.price === null ? t('shoppingStore.noPrice') : formatMoney(p.price)}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.addBtn}
+                    onPress={() => setCartCount((n) => n + 1)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.addBtnText}>{t('common:add')}</Text>
+                  </TouchableOpacity>
+                </View>
+                {p.storeName && (
+                  <Text style={styles.productStore} numberOfLines={1}>
+                    {t('shoppingStore.from', { store: p.storeName })}
+                  </Text>
+                )}
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
 
         <ViewMore onPress={onViewMore} />
       </ScrollView>
@@ -89,7 +139,7 @@ export default function ShoppingStoreScreen({ onBack, onNavigate, onBell, onView
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -105,7 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  cartBadgeText: { color: colors.card, fontSize: 10, fontWeight: '800' },
+  cartBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
 
   catRow: { gap: 16, paddingVertical: 16 },
   catItem: { alignItems: 'center', width: 62 },
@@ -149,5 +199,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
-  addBtnText: { color: colors.card, fontSize: 12, fontWeight: '800' },
+  addBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  productStore: { fontSize: 10, color: colors.textLight, marginTop: 6 },
 });

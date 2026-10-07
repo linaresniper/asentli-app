@@ -9,9 +9,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function TermsScreen({ onAccept }) {
+  const { t } = useTranslation('auth');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { user } = useUser();
   const [accepted, setAccepted] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -33,58 +37,36 @@ export default function TermsScreen({ onAccept }) {
       });
       onAccept?.();
     } catch (e) {
-      setError('No se pudo guardar tu aceptación. Revisá tu conexión e intentá de nuevo.');
+      setError(t('terms.saveError'));
       setSaving(false);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Terms and conditions</Text>
+      <Text style={styles.title}>{t('terms.title')}</Text>
 
       <View style={styles.iconCircle}>
         <Text style={styles.iconEmoji}>⚖️</Text>
       </View>
 
-      <Text style={styles.subtitle}>
-        Please read the terms carefully before using our family financial
-        services.
-      </Text>
+      <Text style={styles.subtitle}>{t('terms.intro')}</Text>
 
       <View style={styles.box}>
-        <Text style={styles.sectionTitle}>1. Acceptance</Text>
-        <Text style={styles.sectionText}>
-          By accessing and using the Asentli app, you agree to be bound by
-          these terms and conditions of use, as well as all applicable laws
-          in the Republic of El Salvador.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('terms.section1Title')}</Text>
+        <Text style={styles.sectionText}>{t('terms.section1Text')}</Text>
 
-        <Text style={styles.sectionTitle}>2. Privacy</Text>
-        <Text style={styles.sectionText}>
-          We are committed to protecting the privacy of your family's
-          finances. Your Basic Basket and savings information is used
-          exclusively to generate personalized statistics and budget
-          recommendations.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('terms.section2Title')}</Text>
+        <Text style={styles.sectionText}>{t('terms.section2Text')}</Text>
 
-        <Text style={styles.sectionTitle}>3. Basic Basket Management</Text>
-        <Text style={styles.sectionText}>
-          The user is responsible for the accuracy of the prices entered.
-          Asentli provides a monitoring platform and does not guarantee the
-          availability of products at local stores.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('terms.section3Title')}</Text>
+        <Text style={styles.sectionText}>{t('terms.section3Text')}</Text>
 
-        <Text style={styles.sectionTitle}>4. Security</Text>
-        <Text style={styles.sectionText}>
-          You are responsible for keeping your password confidential and
-          for all activities that happen under your account.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('terms.section4Title')}</Text>
+        <Text style={styles.sectionText}>{t('terms.section4Text')}</Text>
 
-        <Text style={styles.sectionTitle}>5. Updates</Text>
-        <Text style={styles.sectionText}>
-          Asentli reserves the right to review these terms at any time
-          without prior notice.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('terms.section5Title')}</Text>
+        <Text style={styles.sectionText}>{t('terms.section5Text')}</Text>
       </View>
 
       <TouchableOpacity
@@ -92,9 +74,7 @@ export default function TermsScreen({ onAccept }) {
         onPress={() => setAccepted(!accepted)}
       >
         <View style={[styles.checkbox, accepted && styles.checkboxChecked]} />
-        <Text style={styles.checkboxLabel}>
-          I confirm that I accept the Terms and Conditions
-        </Text>
+        <Text style={styles.checkboxLabel}>{t('terms.acceptCheckbox')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -104,7 +84,7 @@ export default function TermsScreen({ onAccept }) {
         <View
           style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}
         />
-        <Text style={styles.checkboxLabel}>Do not show again</Text>
+        <Text style={styles.checkboxLabel}>{t('terms.dontShowAgain')}</Text>
       </TouchableOpacity>
 
       {!!error && <Text style={styles.errorText}>{error}</Text>}
@@ -118,16 +98,16 @@ export default function TermsScreen({ onAccept }) {
         onPress={handleContinue}
       >
         {saving ? (
-          <ActivityIndicator color={colors.card} />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>{t('terms.continueButton')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     padding: 24,
     paddingTop: 50,
@@ -137,7 +117,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.bottleGreen,
+    color: colors.bottleGreenText,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -216,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   continueText: {
-    color: colors.card,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },

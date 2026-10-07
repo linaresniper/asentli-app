@@ -9,16 +9,21 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import EmptyState from '../components/EmptyState';
 import { useBudget, useMonthExpenses, useRecentExpenses } from '../hooks/useExpenseData';
 import { sumAmount } from '../lib/expenseMath';
 import { formatMoney, formatDateTime } from '../lib/dates';
-import { categoryLabel } from '../constants/categories';
+import { useCategoryLabel } from '../hooks/useCategoryLabel';
 
 export default function CardScreen({ onBack, onNavigate }) {
+    const { t } = useTranslation('home');
+    const categoryLabel = useCategoryLabel();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
     const go = (key) => onNavigate && onNavigate(key);
 
     const budgetQ = useBudget();
@@ -36,13 +41,13 @@ export default function CardScreen({ onBack, onNavigate }) {
             <ScreenHeader title="Asentli" onBack={onBack} onBell={() => go('notifications')} />
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.greeting}>Hi, User</Text>
-                <Text style={styles.pageTitle}>Your Family Wallet</Text>
+                <Text style={styles.greeting}>{t('card.greeting')}</Text>
+                <Text style={styles.pageTitle}>{t('card.pageTitle')}</Text>
 
                 {/* Card */}
                 <View style={styles.cardBox}>
                     <View style={styles.cardTopRow}>
-                        <Text style={styles.cardLabel}>FAMILY DEBIT</Text>
+                        <Text style={styles.cardLabel}>{t('card.familyDebit')}</Text>
                         <Text style={styles.contactlessIcon}>((•))</Text>
                     </View>
 
@@ -71,11 +76,11 @@ export default function CardScreen({ onBack, onNavigate }) {
 
                     <View style={styles.cardBottomRow}>
                         <View>
-                            <Text style={styles.cardSmallLabel}>HEADLINE</Text>
-                            <Text style={styles.cardHolder}>USERNAME</Text>
+                            <Text style={styles.cardSmallLabel}>{t('card.cardHolderLabel')}</Text>
+                            <Text style={styles.cardHolder}>{t('card.cardHolderValue')}</Text>
                         </View>
                         <View>
-                            <Text style={styles.cardSmallLabel}>EXPIRATION</Text>
+                            <Text style={styles.cardSmallLabel}>{t('card.expirationLabel')}</Text>
                             <Text style={styles.cardExpiry}>08/27</Text>
                         </View>
                     </View>
@@ -83,27 +88,27 @@ export default function CardScreen({ onBack, onNavigate }) {
 
                 {/* Pay basket button */}
                 <TouchableOpacity style={styles.payButton} onPress={() => go('basket')}>
-                    <Ionicons name="basket" size={18} color={colors.card} style={{ marginRight: 8 }} />
-                    <Text style={styles.payText}>Pay basket</Text>
+                    <Ionicons name="basket" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                    <Text style={styles.payText}>{t('card.payBasket')}</Text>
                 </TouchableOpacity>
 
                 {/* Quick actions */}
                 <View style={styles.quickRow}>
                     <TouchableOpacity style={styles.quickButton} onPress={() => go('priceComparer')}>
-                        <Ionicons name="swap-horizontal" size={18} color={colors.bottleGreen} />
-                        <Text style={styles.quickText}>Compare prices</Text>
+                        <Ionicons name="swap-horizontal" size={18} color={colors.bottleGreenText} />
+                        <Text style={styles.quickText}>{t('card.comparePrices')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.quickButton} onPress={() => go('rewards')}>
-                        <Ionicons name="cash-outline" size={18} color={colors.bottleGreen} />
-                        <Text style={styles.quickText}>Cashback</Text>
+                        <Ionicons name="cash-outline" size={18} color={colors.bottleGreenText} />
+                        <Text style={styles.quickText}>{t('card.cashback')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Balance card */}
                 <View style={styles.balanceCard}>
-                    <Text style={styles.balanceLabel}>Available Balance</Text>
+                    <Text style={styles.balanceLabel}>{t('card.availableBalance')}</Text>
                     {loading ? (
-                        <ActivityIndicator color={colors.bottleGreen} style={{ alignSelf: 'flex-start', marginVertical: 12 }} />
+                        <ActivityIndicator color={colors.bottleGreenText} style={{ alignSelf: 'flex-start', marginVertical: 12 }} />
                     ) : (
                         <Text style={styles.balanceAmount}>{formatMoney(available)}</Text>
                     )}
@@ -112,7 +117,7 @@ export default function CardScreen({ onBack, onNavigate }) {
                         <View style={[styles.movementIconCircle, { backgroundColor: '#B9D89A' }]}>
                             <Text style={styles.movementIconText}>💰</Text>
                         </View>
-                        <Text style={styles.movementLabel}>Income</Text>
+                        <Text style={styles.movementLabel}>{t('card.income')}</Text>
                         <Text style={styles.incomeAmount}>{formatMoney(0)}</Text>
                     </View>
 
@@ -120,15 +125,15 @@ export default function CardScreen({ onBack, onNavigate }) {
                         <View style={[styles.movementIconCircle, { backgroundColor: '#FF9391' }]}>
                             <Text style={styles.movementIconText}>📉</Text>
                         </View>
-                        <Text style={styles.movementLabel}>Expenses (this month)</Text>
+                        <Text style={styles.movementLabel}>{t('card.expensesThisMonth')}</Text>
                         <Text style={styles.expenseAmount}>-{formatMoney(spent)}</Text>
                     </View>
                 </View>
 
                 {/* Basic Basket Progress */}
                 <View style={styles.progressHeaderRow}>
-                    <Text style={styles.progressTitle}>Basic Basket{'\n'}Progress</Text>
-                    <Text style={styles.progressPercent}>75% Done</Text>
+                    <Text style={styles.progressTitle}>{t('card.basketProgressTitle')}</Text>
+                    <Text style={styles.progressPercent}>{t('card.basketProgressPercent')}</Text>
                 </View>
 
                 <View style={styles.progressBox}>
@@ -138,31 +143,31 @@ export default function CardScreen({ onBack, onNavigate }) {
 
                     <View style={styles.progressStatsRow}>
                         <View>
-                            <Text style={styles.progressStatLabel}>Goal</Text>
+                            <Text style={styles.progressStatLabel}>{t('card.goal')}</Text>
                             <Text style={styles.progressStatValue}>$120.00</Text>
                         </View>
                         <View>
-                            <Text style={styles.progressStatLabel}>Current</Text>
+                            <Text style={styles.progressStatLabel}>{t('card.current')}</Text>
                             <Text style={styles.progressStatValue}>$90.00</Text>
                         </View>
                     </View>
 
                     <View style={styles.progressStatsRow}>
                         <View>
-                            <Text style={styles.progressStatLabel}>Days left</Text>
-                            <Text style={styles.progressStatValue}>12 days</Text>
+                            <Text style={styles.progressStatLabel}>{t('card.daysLeft')}</Text>
+                            <Text style={styles.progressStatValue}>{t('card.daysLeftValue')}</Text>
                         </View>
                         <View style={styles.doingWellBadge}>
-                            <Text style={styles.doingWellText}>You're doing well!</Text>
+                            <Text style={styles.doingWellText}>{t('card.doingWell')}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Recent Movements */}
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Recent Movements</Text>
+                    <Text style={styles.sectionTitle}>{t('card.recentMovements')}</Text>
                     <TouchableOpacity onPress={() => go('purchaseHistory')}>
-                        <Text style={styles.seeAll}>See all</Text>
+                        <Text style={styles.seeAll}>{t('card.seeAll')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -171,8 +176,8 @@ export default function CardScreen({ onBack, onNavigate }) {
                 ) : recent.length === 0 ? (
                     <EmptyState
                         compact
-                        title="Sin movimientos todavía"
-                        subtitle="Tus gastos registrados van a aparecer acá."
+                        title={t('card.noMovementsTitle')}
+                        subtitle={t('card.noMovementsSubtitle')}
                     />
                 ) : (
                     recent.map((m) => (
@@ -204,7 +209,7 @@ export default function CardScreen({ onBack, onNavigate }) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
     flex: { flex: 1, backgroundColor: colors.card },
 
     content: { paddingHorizontal: 20, paddingBottom: 40 },
@@ -255,14 +260,14 @@ const styles = StyleSheet.create({
         borderRadius: 2.5,
         backgroundColor: '#B8C9C0',
     },
-    cardLastDigits: { color: colors.card, fontSize: 22, fontWeight: '700' },
+    cardLastDigits: { color: '#FFFFFF', fontSize: 22, fontWeight: '700' },
     cardBottomRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
     cardSmallLabel: { color: '#8FA89C', fontSize: 10, letterSpacing: 1, marginBottom: 4 },
-    cardHolder: { color: colors.card, fontSize: 14, fontWeight: '600' },
-    cardExpiry: { color: colors.card, fontSize: 14, fontWeight: '600', textAlign: 'right' },
+    cardHolder: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+    cardExpiry: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', textAlign: 'right' },
 
     payButton: {
         flexDirection: 'row',
@@ -273,7 +278,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 12,
     },
-    payText: { color: colors.card, fontSize: 16, fontWeight: '700' },
+    payText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
     quickRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
     quickButton: {
@@ -287,7 +292,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingVertical: 14,
     },
-    quickText: { fontSize: 13, fontWeight: '700', color: colors.bottleGreen },
+    quickText: { fontSize: 13, fontWeight: '700', color: colors.bottleGreenText },
 
     balanceCard: {
         backgroundColor: colors.balanceGreen,
@@ -299,7 +304,7 @@ const styles = StyleSheet.create({
     balanceAmount: {
         fontSize: 32,
         fontWeight: '800',
-        color: colors.bottleGreen,
+        color: colors.bottleGreenText,
         marginTop: 4,
         marginBottom: 20,
     },
@@ -317,8 +322,8 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     movementIconText: { fontSize: 14 },
-    movementLabel: { flex: 1, fontSize: 14, color: colors.bottleGreen },
-    incomeAmount: { fontSize: 14, fontWeight: '700', color: colors.bottleGreen },
+    movementLabel: { flex: 1, fontSize: 14, color: colors.bottleGreenText },
+    incomeAmount: { fontSize: 14, fontWeight: '700', color: colors.bottleGreenText },
     expenseAmount: { fontSize: 14, fontWeight: '700', color: '#C0562E' },
 
     progressHeaderRow: {
@@ -363,7 +368,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 8,
     },
-    doingWellText: { fontSize: 12, color: colors.bottleGreen, fontWeight: '600' },
+    doingWellText: { fontSize: 12, color: colors.bottleGreenText, fontWeight: '600' },
 
     sectionHeaderRow: {
         flexDirection: 'row',

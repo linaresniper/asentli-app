@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { PillButton, ProgressBar, Thumb } from '../components/ui';
@@ -14,18 +15,21 @@ const HISTORY = [
 ];
 
 export default function RewardsScreen({ onBack, onNavigate, onBell, onWithdraw, onKeepShopping }) {
+  const { t } = useTranslation('shopping');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Rewards (Cashback)" onBack={onBack} onBell={onBell} />
+      <ScreenHeader title={t('rewards.title')} onBack={onBack} onBell={onBell} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total cashback available</Text>
+          <Text style={styles.balanceLabel}>{t('rewards.totalAvailable')}</Text>
           <Text style={styles.balanceAmount}>$5.30</Text>
-          <PillButton label="Withdraw Cashback" variant="orange" onPress={onWithdraw} style={{ marginTop: 16 }} />
+          <PillButton label={t('rewards.withdraw')} variant="orange" onPress={onWithdraw} style={{ marginTop: 16 }} />
         </View>
 
-        <Text style={styles.sectionTitle}>Cashback History</Text>
+        <Text style={styles.sectionTitle}>{t('rewards.history')}</Text>
         {HISTORY.map((h) => (
           <View key={h.id} style={styles.row}>
             <Thumb icon={h.icon} bg={colors.lightGreen} />
@@ -39,15 +43,13 @@ export default function RewardsScreen({ onBack, onNavigate, onBell, onWithdraw, 
 
         <View style={styles.keepCard}>
           <View style={styles.keepIcon}>
-            <Ionicons name="gift" size={22} color={colors.card} />
+            <Ionicons name="gift" size={22} color={colors.bannerGreenText} />
           </View>
-          <Text style={styles.keepTitle}>Keep shopping!</Text>
-          <Text style={styles.keepText}>
-            You're $4.70 away from your next $10 cashback reward. Every affiliated purchase counts.
-          </Text>
-          <ProgressBar progress={0.53} color={colors.card} track="#FFFFFF33" />
+          <Text style={styles.keepTitle}>{t('rewards.keepShoppingTitle')}</Text>
+          <Text style={styles.keepText}>{t('rewards.keepShoppingText')}</Text>
+          <ProgressBar progress={0.53} color={colors.bannerGreenText} track="#FFFFFF33" />
           <PillButton
-            label="Browse the store"
+            label={t('rewards.browseStore')}
             variant="dark"
             onPress={onKeepShopping}
             style={{ marginTop: 16 }}
@@ -60,7 +62,7 @@ export default function RewardsScreen({ onBack, onNavigate, onBell, onWithdraw, 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -70,7 +72,7 @@ const styles = StyleSheet.create({
     padding: 22,
   },
   balanceLabel: { fontSize: 13, color: '#9FB7AC' },
-  balanceAmount: { fontSize: 34, fontWeight: '800', color: colors.card, marginTop: 6 },
+  balanceAmount: { fontSize: 34, fontWeight: '800', color: '#FFFFFF', marginTop: 6 },
 
   sectionTitle: { fontSize: 17, fontWeight: '800', color: colors.text, marginTop: 26, marginBottom: 14 },
 
@@ -102,6 +104,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  keepTitle: { fontSize: 17, fontWeight: '800', color: colors.card },
+  keepTitle: { fontSize: 17, fontWeight: '800', color: colors.bannerGreenText },
   keepText: { fontSize: 13, color: colors.bannerGreenText, lineHeight: 19, marginTop: 6, marginBottom: 14 },
 });

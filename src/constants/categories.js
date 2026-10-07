@@ -1,12 +1,17 @@
 import { colors } from '../theme/colors';
 
 // Single source of truth for spending categories.
-// `key` is what's stored in expenses.category (matches the DB CHECK constraint).
+// `key` is what's stored in expenses.category (matches the DB CHECK constraint)
+// AND the i18n key under `common:categories.*`. There is deliberately no
+// `label` here: the visible name is resolved at render time with
+// `useCategoryLabel()` (src/hooks/useCategoryLabel.js) so it follows the
+// language the user picked. The Edge Function of the AI assistant uses these
+// same keys, so the chat breakdown and the rest of the app can never disagree.
 export const CATEGORIES = [
-  { key: 'food', label: 'Food', color: colors.catFood, icon: 'nutrition' },
-  { key: 'dairy', label: 'Dairy', color: colors.catDairy, icon: 'cafe' },
-  { key: 'meat', label: 'Meat', color: colors.catMeat, icon: 'restaurant' },
-  { key: 'other', label: 'Other', color: colors.catOther, icon: 'ellipsis-horizontal' },
+  { key: 'food', color: colors.catFood, icon: 'nutrition' },
+  { key: 'dairy', color: colors.catDairy, icon: 'cafe' },
+  { key: 'meat', color: colors.catMeat, icon: 'restaurant' },
+  { key: 'other', color: colors.catOther, icon: 'ellipsis-horizontal' },
 ];
 
 export const CATEGORY_KEYS = CATEGORIES.map((c) => c.key);
@@ -16,8 +21,9 @@ export const CATEGORY_BY_KEY = CATEGORIES.reduce((acc, c) => {
   return acc;
 }, {});
 
-export function categoryLabel(key) {
-  return CATEGORY_BY_KEY[key]?.label ?? 'Other';
+/** i18n key for a category, falling back to `other` for unknown values. */
+export function categoryLabelKey(key) {
+  return `categories.${CATEGORY_BY_KEY[key] ? key : 'other'}`;
 }
 
 export function categoryColor(key) {

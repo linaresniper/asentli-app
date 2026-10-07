@@ -1,0 +1,9 @@
+{
+  "title": "Ajustes",
+  "language": "Idioma",
+  "languageHint": "Cambia el texto de la app. El chat de IA siempre responde en el idioma en que le escribas.",
+  "english": "English",
+  "spanish": "Español",
+  "appearance": "Apariencia",
+  "darkMode": "Modo oscuro"
+}

@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 /** Shown while Clerk restores the persisted session on cold start. */
 export default function SplashScreen() {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
-    <LinearGradient colors={[colors.gradientTop, '#FFFFFF']} style={styles.flex}>
+    <LinearGradient colors={[colors.gradientTop, colors.card]} style={styles.flex}>
       <View style={styles.center}>
         <View style={styles.logoCircle}>
           <Image
@@ -22,7 +24,7 @@ export default function SplashScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   logoCircle: {
@@ -39,7 +41,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 28,
     fontWeight: '800',
-    color: colors.bottleGreen,
+    color: colors.bottleGreenText,
     letterSpacing: 1,
   },
 });

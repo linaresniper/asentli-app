@@ -12,12 +12,16 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSignIn } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import { clerkErrorMessage } from '../lib/clerkErrors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordScreen({ onBack }) {
+  const { t } = useTranslation('auth');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { isLoaded, signIn, setActive } = useSignIn();
 
   const [step, setStep] = useState('email'); // 'email' | 'reset'
@@ -29,8 +33,8 @@ export default function ForgotPasswordScreen({ onBack }) {
 
   const sendCode = async () => {
     setError('');
-    if (!email.trim()) return setError('El correo es obligatorio');
-    if (!EMAIL_RE.test(email.trim())) return setError('Correo no válido');
+    if (!email.trim()) return setError(t('forgotPassword.emailRequired'));
+    if (!EMAIL_RE.test(email.trim())) return setError(t('forgotPassword.emailInvalid'));
     if (!isLoaded) return;
 
     setSubmitting(true);
@@ -49,8 +53,8 @@ export default function ForgotPasswordScreen({ onBack }) {
 
   const resetPassword = async () => {
     setError('');
-    if (code.trim().length < 6) return setError('Ingresá el código de 6 dígitos.');
-    if (password.length < 8) return setError('La nueva contraseña debe tener al menos 8 caracteres.');
+    if (code.trim().length < 6) return setError(t('forgotPassword.codeRequired'));
+    if (password.length < 8) return setError(t('forgotPassword.passwordTooShort'));
     if (!isLoaded) return;
 
     setSubmitting(true);
@@ -64,7 +68,7 @@ export default function ForgotPasswordScreen({ onBack }) {
         await setActive({ session: res.createdSessionId });
         // Signed in with the new password — auth gate takes over.
       } else {
-        setError('No pudimos completar el cambio. Intentá de nuevo.');
+        setError(t('forgotPassword.resetFailed'));
       }
     } catch (err) {
       setError(clerkErrorMessage(err));
@@ -81,15 +85,15 @@ export default function ForgotPasswordScreen({ onBack }) {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            <Text style={styles.title}>Recuperar contraseña</Text>
+            <Text style={styles.title}>{t('forgotPassword.title')}</Text>
 
             {step === 'email' ? (
               <>
                 <Text style={styles.description}>
-                  Ingresá tu correo y te enviaremos un código para restablecer tu contraseña.
+                  {t('forgotPassword.emailStepDescription')}
                 </Text>
 
-                <Text style={styles.label}>Correo electrónico</Text>
+                <Text style={styles.label}>{t('forgotPassword.emailLabel')}</Text>
                 <TextInput
                   style={[styles.input, error && styles.inputError]}
                   placeholder="name@example.com"
@@ -108,19 +112,19 @@ export default function ForgotPasswordScreen({ onBack }) {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <ActivityIndicator color={colors.card} />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Enviar código</Text>
+                    <Text style={styles.buttonText}>{t('forgotPassword.sendCodeButton')}</Text>
                   )}
                 </TouchableOpacity>
               </>
             ) : (
               <>
                 <Text style={styles.description}>
-                  Revisá tu correo, ingresá el código y elegí una nueva contraseña.
+                  {t('forgotPassword.resetStepDescription')}
                 </Text>
 
-                <Text style={styles.label}>Código</Text>
+                <Text style={styles.label}>{t('forgotPassword.codeLabel')}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="123456"
@@ -131,10 +135,10 @@ export default function ForgotPasswordScreen({ onBack }) {
                   onChangeText={setCode}
                 />
 
-                <Text style={[styles.label, { marginTop: 14 }]}>Nueva contraseña</Text>
+                <Text style={[styles.label, { marginTop: 14 }]}>{t('forgotPassword.newPasswordLabel')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder={t('forgotPassword.newPasswordPlaceholder')}
                   placeholderTextColor={colors.textLight}
                   secureTextEntry
                   value={password}
@@ -149,16 +153,16 @@ export default function ForgotPasswordScreen({ onBack }) {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <ActivityIndicator color={colors.card} />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Cambiar contraseña</Text>
+                    <Text style={styles.buttonText}>{t('forgotPassword.changePasswordButton')}</Text>
                   )}
                 </TouchableOpacity>
               </>
             )}
 
             <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backText}>← Volver al inicio de sesión</Text>
+              <Text style={styles.backText}>{t('forgotPassword.backToLogin')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -167,7 +171,7 @@ export default function ForgotPasswordScreen({ onBack }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1 },
   container: {
     flexGrow: 1,
@@ -219,7 +223,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.card, fontSize: 15, fontWeight: '700' },
+  buttonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   backButton: { alignItems: 'center', marginTop: 18 },
   backText: { color: colors.link, fontSize: 13, fontWeight: '600' },
 });

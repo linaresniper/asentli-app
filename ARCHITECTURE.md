@@ -7,6 +7,7 @@ sobre todo, **cómo se hablan Clerk y Supabase entre sí**.
 
 1. La idea en una frase
 2. Diagrama del flujo de datos
+2b. El asistente de IA: Groq + Edge Function
 3. Quién hace qué: Clerk vs. Supabase
 4. El puente entre los dos: el token de Clerk como llave de Supabase
 5. Qué es un JWT y qué es `auth.jwt() ->> 'sub'`
@@ -32,26 +33,26 @@ Ejemplo: abrís la pantalla Home y querés ver tus gastos del mes.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  TU TELÉFONO (la app)                                                │
+│  TU TELÉFONO (la app)                                               │
 │                                                                     │
-│   HomeScreen.js                                                      │
-│      │  usa el hook useMonthExpenses()                               │
-│      ▼                                                               │
-│   src/hooks/useExpenseData.js                                        │
-│      │  "necesito los gastos del usuario X entre fecha A y fecha B"  │
-│      ▼                                                               │
-│   src/lib/supabase.js  (el "cliente" de Supabase)                    │
-│      │                                                               │
-│      │  1. Antes de cada request le pide a Clerk el token de sesión: │
-│      │        clerk.session.getToken()                               │
-│      ▼                                                               │
+│   HomeScreen.js                                                     │
+│      │  usa el hook useMonthExpenses()                              │
+│      ▼                                                              │
+│   src/hooks/useExpenseData.js                                       │
+│      │  "necesito los gastos del usuario X entre fecha A y fecha B" │
+│      ▼                                                              │
+│   src/lib/supabase.js  (el "cliente" de Supabase)                   │
+│      │                                                              │
+│      │  1. Antes de cada request le pide a Clerk el token de sesión:│
+│      │        clerk.session.getToken()                              │
+│      ▼                                                              │
 └──────┼──────────────────────────────────────────────────────────────┘
        │
        │  2. Manda el request a Supabase con el token de Clerk
        │     en la cabecera  Authorization: Bearer <token>
        ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│  SUPABASE (PostgreSQL en la nube)                                    │
+│  SUPABASE (PostgreSQL en la nube)                                   │
 │                                                                     │
 │   3. Supabase abre el token y lee quién es el usuario:              │
 │         auth.jwt() ->> 'sub'   ==   "user_2abc123..."  (id de Clerk)│
@@ -69,6 +70,69 @@ Ejemplo: abrís la pantalla Home y querés ver tus gastos del mes.
 
 **Clerk nunca toca la base de datos. Supabase nunca maneja contraseñas.** Lo
 único que comparten es el **token** (paso 1 → 3).
+
+---
+
+## 2b. El asistente de IA: Groq + Edge Function
+
+`AIAssistantScreen` no le habla a Groq (el proveedor del modelo Llama)
+directamente — le habla a una **Supabase Edge Function** propia
+(`supabase/functions/ai-assistant`), y es esa función, corriendo en el
+servidor, la única que conoce la clave de Groq.
+
+**Por qué no directo desde la app:** la clave de Groq es secreta. Si viviera
+en el código de la app (o en una variable `EXPO_PUBLIC_*`), cualquiera podría
+sacarla del paquete instalado y usarla a tu costo. Por eso viaja como
+**secreto de servidor** (`supabase secrets set GROQ_API_KEY=...`), invisible
+para el teléfono y para este repo.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  TU TELÉFONO (la app)                                               │
+│                                                                     │
+│   AIAssistantScreen.js                                              │
+│      │  usa el hook useAIAssistant() (react-query)                  │
+│      ▼                                                              │
+│   supabase.functions.invoke('ai-assistant', { body: { message } })  │
+│      │  el mismo token de Clerk que ya usa src/lib/supabase.js      │
+│      │  viaja solo, automático, en Authorization: Bearer <token>    │
+│      ▼                                                              │
+└──────┼──────────────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  SUPABASE EDGE FUNCTION "ai-assistant"  (Deno, corre en el servidor)│
+│                                                                     │
+│   1. Recibe el Authorization que mandó la app y arma un cliente de  │
+│      Supabase "como ese usuario" (mismo token) — nunca usa la       │
+│      service role key.                                              │
+│   2. Con ese cliente lee `budgets` y `expenses` del usuario.        │
+│      RLS aplica igual que en el resto de la app (auth.jwt()->>'sub')│
+│      así que la función físicamente no puede leer datos de otro     │
+│      usuario, aunque quisiera.                                      │
+│   3. Arma un texto de contexto en español con números reales:       │
+│      presupuesto, gastado este mes, desglose por categoría,         │
+│      comparación con el mes anterior (o avisa si no hay datos).     │
+│   4. Manda ese contexto + el mensaje del usuario a Groq             │
+│      (modelo openai/gpt-oss-120b) usando GROQ_API_KEY, un secreto   │
+│      guardado del lado del servidor.                                │
+└──────┼──────────────────────────────────────────────────────────────┘
+       │  5. La respuesta de la IA vuelve como { reply: "..." }
+       ▼
+   useAIAssistant() la entrega  ──▶  AIAssistantScreen la muestra en el chat
+```
+
+**Reglas de esta pieza:**
+- La clave de Groq nunca está en un archivo del repo ni en una variable
+  `EXPO_PUBLIC_*` — solo existe como secreto de Supabase.
+- La función **no inventa números**: si el usuario no tiene presupuesto ni
+  gastos cargados, se lo dice explícitamente al modelo en el contexto para
+  que la respuesta lo aclare en vez de inventar cifras.
+- Si Groq no responde (sin conexión, rate limit, error del servidor), la
+  función devuelve un error claro y la pantalla lo muestra en el chat — nunca
+  falla en silencio.
+- Ver `supabase/functions/ai-assistant/README.md` para los comandos exactos
+  de configuración y despliegue.
 
 ---
 

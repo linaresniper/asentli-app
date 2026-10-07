@@ -11,20 +11,29 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { PillButton } from '../components/ui';
 import { CATEGORIES, KNOWN_MERCHANTS } from '../constants/categories';
+import { useCategoryLabel } from '../hooks/useCategoryLabel';
+import { formatDate } from '../lib/dates';
 import { useAddExpense } from '../hooks/useExpenseData';
 
-function formatDay(d) {
+function formatDay(d, todayLabel) {
   const today = new Date();
   const isToday = d.toDateString() === today.toDateString();
-  const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  return isToday ? `Today · ${label}` : label;
+  // `formatDate` usa los nombres de mes del idioma activo (common:months.*),
+  // en vez del 'en-US' que estaba fijo acá.
+  const label = formatDate(d);
+  return isToday ? `${todayLabel} · ${label}` : label;
 }
 
 export default function AddExpenseScreen({ onBack, onSaved }) {
+  const { t } = useTranslation('budget');
+  const categoryLabel = useCategoryLabel();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const addExpense = useAddExpense();
 
   const [amount, setAmount] = useState('');
@@ -41,9 +50,9 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
   const validate = () => {
     const next = {};
     if (!amount.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      next.amount = 'Ingresá un monto válido mayor a $0';
+      next.amount = t('addExpense.invalidAmount');
     }
-    if (!category) next.category = 'Elegí una categoría';
+    if (!category) next.category = t('addExpense.selectCategory');
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -67,8 +76,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
       },
       {
         onSuccess: () => onSaved?.(),
-        onError: (e) =>
-          setFormError(e?.message || 'No se pudo guardar el gasto. Revisá tu conexión.'),
+        onError: (e) => setFormError(e?.message || t('addExpense.saveError')),
       }
     );
   };
@@ -80,7 +88,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Add Expense" onBack={onBack} />
+      <ScreenHeader title={t('addExpense.title')} onBack={onBack} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -88,7 +96,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {/* Amount */}
-          <Text style={styles.label}>Monto</Text>
+          <Text style={styles.label}>{t('addExpense.amountLabel')}</Text>
           <View style={[styles.amountBox, errors.amount && styles.boxError]}>
             <Text style={styles.amountCurrency}>$</Text>
             <TextInput
@@ -104,7 +112,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
           {!!errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
 
           {/* Category */}
-          <Text style={[styles.label, { marginTop: 22 }]}>Categoría</Text>
+          <Text style={[styles.label, { marginTop: 22 }]}>{t('addExpense.categoryLabel')}</Text>
           <View style={styles.catRow}>
             {CATEGORIES.map((c) => {
               const active = category === c.key;
@@ -117,9 +125,9 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
                   <Ionicons
                     name={c.icon}
                     size={16}
-                    color={active ? colors.card : c.color}
+                    color={active ? '#FFFFFF' : c.color}
                   />
-                  <Text style={[styles.catChipText, active && { color: colors.card }]}>{c.label}</Text>
+                  <Text style={[styles.catChipText, active && { color: '#FFFFFF' }]}>{categoryLabel(c.key)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -127,10 +135,10 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
           {!!errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
 
           {/* Merchant */}
-          <Text style={[styles.label, { marginTop: 22 }]}>Tienda / comercio</Text>
+          <Text style={[styles.label, { marginTop: 22 }]}>{t('addExpense.merchantLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej. Súper Selectos"
+            placeholder={t('addExpense.merchantPlaceholder')}
             placeholderTextColor={colors.textLight}
             value={merchant}
             onChangeText={setMerchant}
@@ -149,10 +157,10 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
           </ScrollView>
 
           {/* Date */}
-          <Text style={[styles.label, { marginTop: 18 }]}>Fecha</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t('addExpense.dateLabel')}</Text>
           <TouchableOpacity style={styles.dateBox} onPress={() => setShowPicker(true)}>
-            <Ionicons name="calendar-outline" size={18} color={colors.bottleGreen} />
-            <Text style={styles.dateText}>{formatDay(date)}</Text>
+            <Ionicons name="calendar-outline" size={18} color={colors.bottleGreenText} />
+            <Text style={styles.dateText}>{formatDay(date, t('addExpense.today'))}</Text>
             <Ionicons name="chevron-down" size={16} color={colors.textLight} />
           </TouchableOpacity>
           {showPicker && (
@@ -166,10 +174,10 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
           )}
 
           {/* Note */}
-          <Text style={[styles.label, { marginTop: 18 }]}>Nota (opcional)</Text>
+          <Text style={[styles.label, { marginTop: 18 }]}>{t('addExpense.noteLabel')}</Text>
           <TextInput
             style={[styles.input, styles.noteInput]}
-            placeholder="Detalle del gasto…"
+            placeholder={t('addExpense.notePlaceholder')}
             placeholderTextColor={colors.textLight}
             value={note}
             onChangeText={setNote}
@@ -179,7 +187,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
           {!!formError && <Text style={[styles.errorText, { marginTop: 14 }]}>{formError}</Text>}
 
           <PillButton
-            label={addExpense.isPending ? 'Guardando…' : 'Save expense'}
+            label={addExpense.isPending ? t('addExpense.saving') : t('addExpense.saveExpenseBtn')}
             variant="orange"
             onPress={handleSave}
             style={{ marginTop: 24, opacity: addExpense.isPending ? 0.6 : 1 }}
@@ -190,7 +198,7 @@ export default function AddExpenseScreen({ onBack, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 40 },
 

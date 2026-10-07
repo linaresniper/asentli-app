@@ -1,0 +1,9 @@
+{
+  "title": "Settings",
+  "language": "Language",
+  "languageHint": "Changes the app's text. The AI chat always replies in whatever language you write to it in.",
+  "english": "English",
+  "spanish": "Español",
+  "appearance": "Appearance",
+  "darkMode": "Dark Mode"
+}

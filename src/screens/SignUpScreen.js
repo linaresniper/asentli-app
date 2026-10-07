@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSignUp } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import { clerkErrorMessage } from '../lib/clerkErrors';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import GoogleButton from '../components/GoogleButton';
@@ -21,6 +22,9 @@ import GoogleButton from '../components/GoogleButton';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignUpScreen({ onSignInInstead }) {
+  const { t } = useTranslation('auth');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { isLoaded, signUp, setActive } = useSignUp();
   const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
@@ -35,11 +39,11 @@ export default function SignUpScreen({ onSignInInstead }) {
 
   const validate = () => {
     const next = {};
-    if (!email.trim()) next.email = 'El correo es obligatorio';
-    else if (!EMAIL_RE.test(email.trim())) next.email = 'Correo no válido';
+    if (!email.trim()) next.email = t('signup.emailRequired');
+    else if (!EMAIL_RE.test(email.trim())) next.email = t('signup.emailInvalid');
 
-    if (!password) next.password = 'La contraseña es obligatoria';
-    else if (password.length < 8) next.password = 'Debe tener al menos 8 caracteres';
+    if (!password) next.password = t('signup.passwordRequired');
+    else if (password.length < 8) next.password = t('signup.passwordTooShort');
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -64,7 +68,7 @@ export default function SignUpScreen({ onSignInInstead }) {
     setFormError('');
     if (!isLoaded) return;
     if (code.trim().length < 6) {
-      setFormError('Ingresá el código de 6 dígitos que te enviamos por correo.');
+      setFormError(t('signup.codeRequired'));
       return;
     }
     setSubmitting(true);
@@ -74,7 +78,7 @@ export default function SignUpScreen({ onSignInInstead }) {
         await setActive({ session: res.createdSessionId });
         // Auth gate takes over from here.
       } else {
-        setFormError('No pudimos completar la verificación. Intentá de nuevo.');
+        setFormError(t('signup.verificationFailed'));
       }
     } catch (err) {
       setFormError(clerkErrorMessage(err));
@@ -100,14 +104,14 @@ export default function SignUpScreen({ onSignInInstead }) {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <Image source={require('../../assets/asentli-logo.jpg')} style={styles.logo} />
-          <Text style={styles.title}>Create your account</Text>
-          <Text style={styles.subtitle}>Fintech familiar</Text>
+          <Text style={styles.title}>{t('signup.title')}</Text>
+          <Text style={styles.subtitle}>{t('signup.subtitle')}</Text>
 
           <View style={styles.card}>
             {step === 'form' ? (
               <>
                 <View style={styles.field}>
-                  <Text style={styles.label}>Email</Text>
+                  <Text style={styles.label}>{t('signup.emailLabel')}</Text>
                   <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
                     <Text style={styles.icon}>✉️</Text>
                     <TextInput
@@ -124,12 +128,12 @@ export default function SignUpScreen({ onSignInInstead }) {
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Password</Text>
+                  <Text style={styles.label}>{t('signup.passwordLabel')}</Text>
                   <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
                     <Text style={styles.icon}>🔒</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="Mínimo 8 caracteres"
+                      placeholder={t('signup.passwordPlaceholder')}
                       placeholderTextColor={colors.textLight}
                       secureTextEntry={!showPassword}
                       value={password}
@@ -150,15 +154,15 @@ export default function SignUpScreen({ onSignInInstead }) {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <ActivityIndicator color={colors.card} />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Sign up</Text>
+                    <Text style={styles.buttonText}>{t('signup.signUpButton')}</Text>
                   )}
                 </TouchableOpacity>
 
                 <View style={styles.dividerRow}>
                   <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>o</Text>
+                  <Text style={styles.dividerText}>{t('signup.or')}</Text>
                   <View style={styles.dividerLine} />
                 </View>
 
@@ -168,12 +172,12 @@ export default function SignUpScreen({ onSignInInstead }) {
             ) : (
               <>
                 <Text style={styles.verifyText}>
-                  Te enviamos un código de 6 dígitos a{'\n'}
+                  {t('signup.verifyIntro')}{'\n'}
                   <Text style={styles.verifyEmail}>{email.trim()}</Text>
                 </Text>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Código de verificación</Text>
+                  <Text style={styles.label}>{t('signup.verificationCodeLabel')}</Text>
                   <View style={styles.inputWrapper}>
                     <Text style={styles.icon}>🔑</Text>
                     <TextInput
@@ -196,23 +200,23 @@ export default function SignUpScreen({ onSignInInstead }) {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <ActivityIndicator color={colors.card} />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Verificar</Text>
+                    <Text style={styles.buttonText}>{t('signup.verifyButton')}</Text>
                   )}
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={resendCode} style={styles.resend}>
-                  <Text style={styles.resendText}>Reenviar código</Text>
+                  <Text style={styles.resendText}>{t('signup.resendCode')}</Text>
                 </TouchableOpacity>
               </>
             )}
           </View>
 
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>¿Ya tenés cuenta? </Text>
+            <Text style={styles.footerText}>{t('signup.alreadyHaveAccount')}</Text>
             <TouchableOpacity onPress={onSignInInstead}>
-              <Text style={styles.footerLink}>Iniciar sesión</Text>
+              <Text style={styles.footerLink}>{t('signup.signIn')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -221,7 +225,7 @@ export default function SignUpScreen({ onSignInInstead }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1 },
   container: {
     flexGrow: 1,
@@ -279,7 +283,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.card, fontSize: 15, fontWeight: '700' },
+  buttonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 18 },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: { fontSize: 12, color: colors.textLight, marginHorizontal: 10 },
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  verifyEmail: { fontWeight: '700', color: colors.bottleGreen },
+  verifyEmail: { fontWeight: '700', color: colors.bottleGreenText },
   resend: { alignItems: 'center', marginTop: 14 },
   resendText: { color: colors.link, fontSize: 13, fontWeight: '600' },
   footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },

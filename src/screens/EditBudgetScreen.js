@@ -8,13 +8,17 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { PillButton } from '../components/ui';
 import { useBudget, useSetBudget } from '../hooks/useExpenseData';
 import { formatMoney } from '../lib/dates';
 
 export default function EditBudgetScreen({ onBack, onSaved }) {
+  const { t } = useTranslation('budget');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { data: budget, isLoading } = useBudget();
   const setBudget = useSetBudget();
 
@@ -36,35 +40,32 @@ export default function EditBudgetScreen({ onBack, onSaved }) {
     setError('');
     setFormError('');
     if (!amount.trim() || !Number.isFinite(parsed) || parsed < 0) {
-      setError('Ingresá un monto válido (0 o más)');
+      setError(t('editBudget.invalidAmount'));
       return;
     }
     setBudget.mutate(Math.round(parsed * 100) / 100, {
       onSuccess: () => onSaved?.(),
-      onError: (e) => setFormError(e?.message || 'No se pudo guardar el presupuesto.'),
+      onError: (e) => setFormError(e?.message || t('editBudget.saveError')),
     });
   };
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Edit Budget" onBack={onBack} />
+      <ScreenHeader title={t('editBudget.title')} onBack={onBack} />
 
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.help}>
-            Definí cuánto quiere gastar tu familia por mes. Las pantallas de presupuesto y
-            estadísticas usan este número.
-          </Text>
+          <Text style={styles.help}>{t('editBudget.help')}</Text>
 
-          <Text style={styles.label}>Presupuesto mensual</Text>
+          <Text style={styles.label}>{t('editBudget.label')}</Text>
           <View style={[styles.amountBox, error && styles.boxError]}>
             <Text style={styles.currency}>$</Text>
             <TextInput
               style={styles.amountInput}
-              placeholder="0.00"
+              placeholder={t('editBudget.amountPlaceholder')}
               placeholderTextColor={colors.textLight}
               keyboardType="decimal-pad"
               value={amount}
@@ -75,13 +76,15 @@ export default function EditBudgetScreen({ onBack, onSaved }) {
           {!!error && <Text style={styles.errorText}>{error}</Text>}
 
           {!isLoading && budget?.monthlyTotal > 0 && (
-            <Text style={styles.current}>Actual: {formatMoney(budget.monthlyTotal)}</Text>
+            <Text style={styles.current}>
+              {t('editBudget.currentBudget', { amount: formatMoney(budget.monthlyTotal) })}
+            </Text>
           )}
 
           {!!formError && <Text style={[styles.errorText, { marginTop: 12 }]}>{formError}</Text>}
 
           <PillButton
-            label={setBudget.isPending ? 'Guardando…' : 'Save budget'}
+            label={setBudget.isPending ? t('editBudget.saving') : t('editBudget.saveBudgetBtn')}
             variant="orange"
             onPress={handleSave}
             style={{ marginTop: 24, opacity: setBudget.isPending ? 0.6 : 1 }}
@@ -92,7 +95,7 @@ export default function EditBudgetScreen({ onBack, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 40 },
   help: { fontSize: 13, color: colors.textLight, lineHeight: 19, marginBottom: 24 },

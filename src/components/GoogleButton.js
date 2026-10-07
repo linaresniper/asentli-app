@@ -1,9 +1,14 @@
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet, ActivityIndicator, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
-/** Shared "Continuar con Google" button used on the sign-in and sign-up screens. */
-export default function GoogleButton({ onPress, loading, label = 'Continuar con Google' }) {
+/** Shared "Continue with Google" button used on the sign-in and sign-up screens. */
+export default function GoogleButton({ onPress, loading, label }) {
+  const { t } = useTranslation('common');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const resolvedLabel = label ?? t('continueWithGoogle');
   return (
     <TouchableOpacity
       style={styles.button}
@@ -16,14 +21,14 @@ export default function GoogleButton({ onPress, loading, label = 'Continuar con 
       ) : (
         <View style={styles.inner}>
           <Text style={styles.g}>G</Text>
-          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.label}>{resolvedLabel}</Text>
         </View>
       )}
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',

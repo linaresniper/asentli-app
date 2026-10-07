@@ -11,13 +11,17 @@ import {
   Alert,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { PillButton } from '../components/ui';
 import { useUpdatePassword } from '../hooks/useUserProfile';
 import { clerkErrorMessage } from '../lib/clerkErrors';
 
 export default function ChangePasswordScreen({ onBack, onSaved }) {
+  const { t } = useTranslation('profileEdit');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { user } = useUser();
   const updatePassword = useUpdatePassword();
   const hasPassword = !!user?.passwordEnabled;
@@ -32,13 +36,13 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
   const validate = () => {
     const next = {};
     if (hasPassword && !currentPassword) {
-      next.currentPassword = 'Ingresá tu contraseña actual';
+      next.currentPassword = t('changePassword.currentPasswordRequired');
     }
     if (!newPassword || newPassword.length < 8) {
-      next.newPassword = 'Debe tener al menos 8 caracteres';
+      next.newPassword = t('changePassword.newPasswordTooShort');
     }
     if (newPassword !== confirmPassword) {
-      next.confirmPassword = 'Las contraseñas no coinciden';
+      next.confirmPassword = t('changePassword.passwordsDontMatch');
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -51,32 +55,29 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
       { currentPassword, newPassword },
       {
         onSuccess: () => {
-          Alert.alert('Listo', 'Tu contraseña se actualizó correctamente.', [
-            { text: 'OK', onPress: onSaved },
+          Alert.alert(t('changePassword.successTitle'), t('changePassword.successMessage'), [
+            { text: t('common:ok'), onPress: onSaved },
           ]);
         },
         onError: (err) =>
-          setFormError(clerkErrorMessage(err, 'No se pudo cambiar la contraseña.')),
+          setFormError(clerkErrorMessage(err, t('changePassword.genericError'))),
       }
     );
   };
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Change Password" onBack={onBack} />
+      <ScreenHeader title={t('changePassword.title')} onBack={onBack} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {!hasPassword && (
-            <Text style={styles.hint}>
-              Tu cuenta usa Google para iniciar sesión y todavía no tiene contraseña. Si creás una
-              acá, vas a poder entrar también con correo y contraseña.
-            </Text>
+            <Text style={styles.hint}>{t('changePassword.noPasswordHint')}</Text>
           )}
 
           {hasPassword && (
             <>
-              <Text style={styles.label}>Contraseña actual</Text>
+              <Text style={styles.label}>{t('changePassword.currentPasswordLabel')}</Text>
               <TextInput
                 style={[styles.input, errors.currentPassword && styles.inputError]}
                 placeholder="••••••••"
@@ -89,10 +90,10 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
             </>
           )}
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Nueva contraseña</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>{t('changePassword.newPasswordLabel')}</Text>
           <TextInput
             style={[styles.input, errors.newPassword && styles.inputError]}
-            placeholder="Mínimo 8 caracteres"
+            placeholder={t('changePassword.newPasswordPlaceholder')}
             placeholderTextColor={colors.textLight}
             secureTextEntry={!showPasswords}
             value={newPassword}
@@ -100,10 +101,10 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
           />
           {!!errors.newPassword && <Text style={styles.errorText}>{errors.newPassword}</Text>}
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Confirmar nueva contraseña</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>{t('changePassword.confirmPasswordLabel')}</Text>
           <TextInput
             style={[styles.input, errors.confirmPassword && styles.inputError]}
-            placeholder="Repetí la contraseña"
+            placeholder={t('changePassword.confirmPasswordPlaceholder')}
             placeholderTextColor={colors.textLight}
             secureTextEntry={!showPasswords}
             value={confirmPassword}
@@ -113,14 +114,14 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
 
           <TouchableOpacity onPress={() => setShowPasswords((v) => !v)} style={styles.toggleRow}>
             <Text style={styles.toggleText}>
-              {showPasswords ? 'Ocultar contraseñas' : 'Mostrar contraseñas'}
+              {showPasswords ? t('changePassword.hidePasswords') : t('changePassword.showPasswords')}
             </Text>
           </TouchableOpacity>
 
           {!!formError && <Text style={[styles.errorText, { marginTop: 6 }]}>{formError}</Text>}
 
           <PillButton
-            label={updatePassword.isPending ? 'Guardando…' : 'Save password'}
+            label={updatePassword.isPending ? t('changePassword.saving') : t('changePassword.savePassword')}
             variant="orange"
             onPress={handleSave}
             style={{ marginTop: 20, opacity: updatePassword.isPending ? 0.6 : 1 }}
@@ -131,7 +132,7 @@ export default function ChangePasswordScreen({ onBack, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 40 },
 

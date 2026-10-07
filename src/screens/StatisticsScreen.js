@@ -2,19 +2,23 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Circle } from 'react-native-svg';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { Chips } from '../components/ui';
 import EmptyState from '../components/EmptyState';
 import { usePeriodExpenses } from '../hooks/useExpenseData';
-import { sumAmount, donutData, comparisonText, periodWordFor } from '../lib/expenseMath';
+import { sumAmount, donutData, comparisonInsight } from '../lib/expenseMath';
+import { useCategoryLabel } from '../hooks/useCategoryLabel';
 import { formatMoney } from '../lib/dates';
 
 const PERIODS = ['Weekly', 'Monthly', 'Yearly'];
-const PERIOD_LABEL = { Weekly: 'This week', Monthly: 'This month', Yearly: 'This year' };
 
 function DonutChart({ data, total, size = 170, strokeWidth = 26 }) {
+  const { t } = useTranslation('home');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const radius = (size - strokeWidth) / 2;
   const circ = 2 * Math.PI * radius;
   let acc = 0;
@@ -57,13 +61,17 @@ function DonutChart({ data, total, size = 170, strokeWidth = 26 }) {
       </Svg>
       <View style={styles.donutCenter}>
         <Text style={styles.donutCenterValue}>{formatMoney(total)}</Text>
-        <Text style={styles.donutCenterLabel}>spent</Text>
+        <Text style={styles.donutCenterLabel}>{t('statistics.spent')}</Text>
       </View>
     </View>
   );
 }
 
 export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHistory, onOpenRewards }) {
+  const { t } = useTranslation('home');
+  const categoryLabel = useCategoryLabel();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [period, setPeriod] = useState('Monthly');
   const { current, previous } = usePeriodExpenses(period);
 
@@ -72,22 +80,22 @@ export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHis
   const total = sumAmount(expenses);
   const prevTotal = sumAmount(previous.data ?? []);
   const donut = donutData(expenses);
-  const insight = comparisonText(total, prevTotal, periodWordFor(period));
+  const insight = comparisonInsight(total, prevTotal);
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Consumption Insights" onBack={onBack} onBell={onBell} />
+      <ScreenHeader title={t('statistics.title')} onBack={onBack} onBell={onBell} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Chips options={PERIODS} value={period} onChange={setPeriod} />
 
-        <Text style={styles.periodLabel}>{PERIOD_LABEL[period]}</Text>
+        <Text style={styles.periodLabel}>{t(`statistics.periodLabel.${period.toLowerCase()}`)}</Text>
         {loading ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: 20, alignSelf: 'flex-start' }} />
         ) : (
           <>
             <Text style={styles.totalSpent}>{formatMoney(total)}</Text>
-            <Text style={styles.totalCaption}>Total spent</Text>
+            <Text style={styles.totalCaption}>{t('statistics.totalSpent')}</Text>
 
             <View style={styles.chartCard}>
               <DonutChart data={donut} total={total} />
@@ -95,7 +103,7 @@ export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHis
                 {donut.map((c) => (
                   <View key={c.key} style={styles.legendRow}>
                     <View style={[styles.legendDot, { backgroundColor: c.color }]} />
-                    <Text style={styles.legendKey}>{c.label}</Text>
+                    <Text style={styles.legendKey}>{categoryLabel(c.key)}</Text>
                     <Text style={styles.legendPct}>{Math.round(c.pct * 100)}%</Text>
                   </View>
                 ))}
@@ -105,8 +113,8 @@ export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHis
             {total === 0 && (
               <EmptyState
                 compact
-                title="Aún no tienes gastos registrados"
-                subtitle="Agregá un gasto con el botón + en Home para ver tus estadísticas."
+                title={t('common:noExpensesYet')}
+                subtitle={t('statistics.addExpenseHint')}
               />
             )}
 
@@ -114,25 +122,28 @@ export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHis
             <View style={styles.insightCard}>
               <View style={styles.insightHeader}>
                 <Ionicons name="trending-down" size={18} color={colors.cardPinkText} />
-                <Text style={styles.insightTitle}>Spending Insight</Text>
+                <Text style={styles.insightTitle}>{t('statistics.spendingInsight')}</Text>
               </View>
-              <Text style={styles.insightText}>{insight}</Text>
+              <Text style={styles.insightText}>
+                {t(`statistics.insight.${insight.key}`, {
+                  amount: insight.amount,
+                  period: t(`statistics.periodWord.${period.toLowerCase()}`),
+                })}
+              </Text>
               <Text style={styles.insightLink} onPress={onOpenHistory}>
-                View purchase history →
+                {t('statistics.viewPurchaseHistory')}
               </Text>
             </View>
 
             {/* Asentli Tip */}
             <View style={styles.tipCard}>
               <View style={styles.insightHeader}>
-                <Ionicons name="bulb" size={18} color={colors.bottleGreen} />
-                <Text style={styles.tipTitle}>Asentli Tip</Text>
+                <Ionicons name="bulb" size={18} color={colors.bottleGreenText} />
+                <Text style={styles.tipTitle}>{t('statistics.asentliTip')}</Text>
               </View>
-              <Text style={styles.tipText}>
-                Registrá cada gasto apenas lo hacés — así la dona y el presupuesto se mantienen al día.
-              </Text>
+              <Text style={styles.tipText}>{t('statistics.tipText')}</Text>
               <Text style={styles.tipLink} onPress={onOpenRewards}>
-                See your cashback →
+                {t('statistics.seeYourCashback')}
               </Text>
             </View>
           </>
@@ -144,7 +155,7 @@ export default function StatisticsScreen({ onBack, onNavigate, onBell, onOpenHis
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -192,7 +203,7 @@ const styles = StyleSheet.create({
     padding: 18,
     marginTop: 14,
   },
-  tipTitle: { fontSize: 15, fontWeight: '800', color: colors.bottleGreen },
+  tipTitle: { fontSize: 15, fontWeight: '800', color: colors.bottleGreenText },
   tipText: { fontSize: 13, color: colors.text, lineHeight: 19 },
-  tipLink: { fontSize: 13, fontWeight: '800', color: colors.bottleGreen, marginTop: 10 },
+  tipLink: { fontSize: 13, fontWeight: '800', color: colors.bottleGreenText, marginTop: 10 },
 });

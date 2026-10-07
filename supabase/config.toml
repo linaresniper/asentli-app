@@ -1,0 +1,18 @@
+# Config del CLI de Supabase para este proyecto.
+# No hay secretos acá — GROQ_API_KEY se guarda aparte con `supabase secrets set`
+# (ver supabase/functions/ai-assistant/README.md).
+
+project_id = "qupfliqtuvledgpocoaz"
+
+# Ya activado desde el Dashboard (Authentication → Third-Party Auth) — ver
+# MIGRATION_NOTES.md. Se repite acá para que `supabase link` no lo pise.
+[auth.third_party.clerk]
+enabled = true
+domain  = "helped-tick-1718.clerk.accounts.dev"
+
+# El login es 100% Clerk, no Supabase Auth, así que no tiene sentido que la
+# función valide el JWT con la verificación nativa de Supabase. La función
+# reenvía el JWT de Clerk tal cual a Postgres, y es RLS (auth.jwt()->>'sub')
+# quien de verdad filtra los datos por usuario.
+[functions.ai-assistant]
+verify_jwt = false

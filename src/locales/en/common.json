@@ -1,0 +1,49 @@
+{
+  "cancel": "Cancel",
+  "ok": "OK",
+  "save": "Save",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "error": "Error",
+  "permissionNeeded": "Permission needed",
+  "loading": "Loading…",
+  "add": "Add",
+  "continueWithGoogle": "Continue with Google",
+  "noExpensesYet": "You don't have any expenses yet",
+  "underConstruction": "This screen is under construction",
+  "familyMembers": "Family members",
+  "familyMembersComingSoon": "Coming soon: several family members sharing one budget.",
+  "nav": {
+    "home": "Home",
+    "statistics": "Statistics",
+    "basket": "Basket",
+    "profile": "Profile"
+  },
+  "categories": {
+    "food": "Food",
+    "dairy": "Dairy",
+    "meat": "Meat",
+    "other": "Other"
+  },
+  "months": {
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mar",
+    "apr": "Apr",
+    "may": "May",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Oct",
+    "nov": "Nov",
+    "dec": "Dec"
+  },
+  "relativeDays": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "lastWeek": "Last Week",
+    "earlier": "Earlier"
+  },
+  "week": "Week {{n}}"
+}

@@ -9,10 +9,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 /* Rounded search field, used on list-style screens. */
 export function SearchBar({ placeholder = 'Search...', value, onChangeText, right }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <View style={styles.searchWrap}>
       <Ionicons name="search" size={18} color={colors.textLight} />
@@ -30,6 +32,8 @@ export function SearchBar({ placeholder = 'Search...', value, onChangeText, righ
 
 /* Horizontal category pills. `options` = array of strings. */
 export function Chips({ options, value, onChange, style }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <ScrollView
       horizontal
@@ -53,16 +57,20 @@ export function Chips({ options, value, onChange, style }) {
 }
 
 /* Thin rounded progress bar. `progress` = 0..1. */
-export function ProgressBar({ progress = 0, color = colors.saladGreen, track = colors.progressTrack, height = 8 }) {
+export function ProgressBar({ progress = 0, color, track, height = 8 }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const resolvedColor = color ?? colors.saladGreen;
+  const resolvedTrack = track ?? colors.progressTrack;
   const pct = Math.max(0, Math.min(1, progress));
   return (
-    <View style={[styles.track, { backgroundColor: track, height, borderRadius: height / 2 }]}>
+    <View style={[styles.track, { backgroundColor: resolvedTrack, height, borderRadius: height / 2 }]}>
       <View
         style={{
           width: `${pct * 100}%`,
           height,
           borderRadius: height / 2,
-          backgroundColor: color,
+          backgroundColor: resolvedColor,
         }}
       />
     </View>
@@ -71,6 +79,8 @@ export function ProgressBar({ progress = 0, color = colors.saladGreen, track = c
 
 /* "Title ............ Action" row above card lists. */
 export function SectionHeader({ title, action, onAction }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <View style={styles.sectionHeaderRow}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -85,6 +95,8 @@ export function SectionHeader({ title, action, onAction }) {
 
 /* Full-width pill button. `variant` = 'orange' | 'green' | 'dark'. */
 export function PillButton({ label, onPress, variant = 'orange', icon, style }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const bg =
     variant === 'green'
       ? colors.saladGreen
@@ -93,7 +105,7 @@ export function PillButton({ label, onPress, variant = 'orange', icon, style }) 
       : colors.primary;
   return (
     <TouchableOpacity style={[styles.pillButton, { backgroundColor: bg }, style]} onPress={onPress}>
-      {icon ? <Ionicons name={icon} size={16} color={colors.card} style={{ marginRight: 8 }} /> : null}
+      {icon ? <Ionicons name={icon} size={16} color="#FFFFFF" style={{ marginRight: 8 }} /> : null}
       <Text style={styles.pillButtonText}>{label}</Text>
     </TouchableOpacity>
   );
@@ -103,12 +115,16 @@ export function PillButton({ label, onPress, variant = 'orange', icon, style }) 
    Pass `imageUri` to show a real photo instead (e.g. the Clerk avatar). */
 export function Thumb({
   icon = 'image',
-  bg = colors.lightGreen,
-  color = colors.bottleGreen,
+  bg,
+  color,
   size = 44,
   radius = 12,
   imageUri,
 }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const resolvedBg = bg ?? colors.lightGreen;
+  const resolvedColor = color ?? colors.bottleGreenText;
   if (imageUri) {
     return (
       <Image
@@ -118,14 +134,16 @@ export function Thumb({
     );
   }
   return (
-    <View style={[styles.thumb, { width: size, height: size, borderRadius: radius, backgroundColor: bg }]}>
-      <Ionicons name={icon} size={Math.round(size * 0.5)} color={color} />
+    <View style={[styles.thumb, { width: size, height: size, borderRadius: radius, backgroundColor: resolvedBg }]}>
+      <Ionicons name={icon} size={Math.round(size * 0.5)} color={resolvedColor} />
     </View>
   );
 }
 
 /* "View more  ›" footer link used at the end of several lists. */
 export function ViewMore({ onPress, label = 'View more' }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <TouchableOpacity style={styles.viewMore} onPress={onPress}>
       <Text style={styles.viewMoreText}>{label}</Text>
@@ -134,7 +152,7 @@ export function ViewMore({ onPress, label = 'View more' }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -176,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pillButtonText: { color: colors.card, fontSize: 15, fontWeight: '700' },
+  pillButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 
   thumb: { alignItems: 'center', justifyContent: 'center' },
 

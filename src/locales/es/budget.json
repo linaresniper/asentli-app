@@ -1,0 +1,53 @@
+{
+  "budgetDetails": {
+    "title": "Detalles del presupuesto",
+    "availableBudget": "Presupuesto disponible",
+    "of": "de",
+    "remainingThisMonth": "{{pct}}% restante este mes",
+    "noBudgetSet": "Todavía no configuraste un presupuesto",
+    "allocated": "Asignado",
+    "remaining": "Restante",
+    "breakdown": "Desglose del presupuesto",
+    "noExpensesTitle": "Sin gastos este mes",
+    "noExpensesSubtitle": "Cuando registres gastos, vas a ver acá cómo se reparten por categoría.",
+    "pctOfBudget": "{{pct}}% del presupuesto",
+    "setBudgetToSeePct": "configurá un presupuesto para ver %",
+    "editBudgetBtn": "Editar presupuesto",
+    "setBudgetBtn": "Configurar presupuesto"
+  },
+  "editBudget": {
+    "title": "Editar presupuesto",
+    "help": "Definí cuánto quiere gastar tu familia por mes. Las pantallas de presupuesto y estadísticas usan este número.",
+    "label": "Presupuesto mensual",
+    "amountPlaceholder": "0.00",
+    "invalidAmount": "Ingresá un monto válido (0 o más)",
+    "saveError": "No se pudo guardar el presupuesto.",
+    "currentBudget": "Actual: {{amount}}",
+    "saving": "Guardando…",
+    "saveBudgetBtn": "Guardar presupuesto"
+  },
+  "addExpense": {
+    "title": "Agregar gasto",
+    "amountLabel": "Monto",
+    "invalidAmount": "Ingresá un monto válido mayor a $0",
+    "selectCategory": "Elegí una categoría",
+    "saveError": "No se pudo guardar el gasto. Revisá tu conexión.",
+    "categoryLabel": "Categoría",
+    "merchantLabel": "Tienda / comercio",
+    "merchantPlaceholder": "Ej. Súper Selectos",
+    "dateLabel": "Fecha",
+    "today": "Hoy",
+    "noteLabel": "Nota (opcional)",
+    "notePlaceholder": "Detalle del gasto…",
+    "saving": "Guardando…",
+    "saveExpenseBtn": "Guardar gasto"
+  },
+  "purchaseHistory": {
+    "title": "Historial de compras",
+    "searchPlaceholder": "Buscar transacciones...",
+    "loadErrorTitle": "No se pudieron cargar tus gastos",
+    "loadErrorSubtitle": "Revisá tu conexión y volvé a intentar.",
+    "noResults": "Sin resultados",
+    "addExpenseHint": "Agregá un gasto con el botón + en Home."
+  }
+}

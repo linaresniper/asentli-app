@@ -1,0 +1,35 @@
+{
+  "editProfile": {
+    "title": "Editar perfil",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Tu nombre",
+    "lastNameLabel": "Apellido",
+    "lastNamePlaceholder": "Tu apellido",
+    "phoneLabel": "Teléfono",
+    "phonePlaceholder": "Ej. 7000-0000",
+    "emailLabel": "Correo electrónico",
+    "emailHint": "Para cambiar tu correo, escribinos a soporte — no se edita desde acá todavía.",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar cambios",
+    "genericSaveError": "No se pudieron guardar los cambios. Intentá de nuevo."
+  },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "noPasswordHint": "Tu cuenta usa Google para iniciar sesión y todavía no tiene contraseña. Si creás una acá, vas a poder entrar también con correo y contraseña.",
+    "currentPasswordLabel": "Contraseña actual",
+    "currentPasswordRequired": "Ingresá tu contraseña actual",
+    "newPasswordLabel": "Nueva contraseña",
+    "newPasswordPlaceholder": "Mínimo 8 caracteres",
+    "newPasswordTooShort": "Debe tener al menos 8 caracteres",
+    "confirmPasswordLabel": "Confirmar nueva contraseña",
+    "confirmPasswordPlaceholder": "Repetí la contraseña",
+    "passwordsDontMatch": "Las contraseñas no coinciden",
+    "showPasswords": "Mostrar contraseñas",
+    "hidePasswords": "Ocultar contraseñas",
+    "successTitle": "Listo",
+    "successMessage": "Tu contraseña se actualizó correctamente.",
+    "genericError": "No se pudo cambiar la contraseña.",
+    "saving": "Guardando…",
+    "savePassword": "Guardar contraseña"
+  }
+}

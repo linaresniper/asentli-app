@@ -40,6 +40,8 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 |---|---|
 | 🟢 **Supabase** | Los datos vienen de la base de datos (tablas `expenses` / `budgets`) |
 | 🔵 **Clerk** | Los datos vienen del usuario logueado (nombre, correo, sesión, "aceptó términos") |
+| 🟣 **IA (Groq)** | Las respuestas las genera un modelo de Llama vía una Supabase Edge Function |
+| 🟢 **catálogo** | Tablas compartidas `stores` / `products` / `store_products` — contenido documentado en `CATALOG.md` |
 | 🟠 **Hardcodeado** | Los datos están **escritos a mano en el código**. No son reales todavía |
 | 🟢+🟠 | Mezcla: parte real, parte de ejemplo |
 
@@ -123,7 +125,6 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
   PriceComparerScreen ─────────"Open store"─────────▶ ShoppingStoreScreen
   RewardsScreen ───────────────"Browse the store"──▶ ShoppingStoreScreen
   DiscountsOffersScreen ───────"View more"──────────▶ AvailableOffersScreen
-  AIAssistantScreen ───────────"Ver la comparación"▶ PriceComparerScreen
 
   Casi todas las pantallas secundarias:  campana 🔔 ──▶ NotificationsScreen
 
@@ -230,11 +231,22 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
   Movements" = últimos 5 gastos reales (**🟢** `useRecentExpenses(5)`).
 - **Navega a:** basket, priceComparer, rewards, purchaseHistory.
 
-### `AIAssistantScreen.js` — 🟠 Hardcodeado
-- **Muestra:** burbuja de saludo, "Predicción de gastos semanales" (gráfico de
-  barras fijo), un mensaje del "asistente", input de chat (no envía nada).
-- **Datos:** todo de ejemplo. No hay IA conectada.
-- **Navega a:** priceComparer.
+### `AIAssistantScreen.js` — 🟢+🟣 Conectado (Supabase + Groq)
+- **Muestra:** burbuja de saludo, gráfico de "Gastos por Semana" con los
+  gastos reales del mes (`useMonthExpenses`, mismo cálculo que `HomeScreen`),
+  chat con historial de la conversación actual, indicador de "escribiendo…"
+  y dos botones rápidos: "¿Cómo gasto menos?" (manda un mensaje predefinido)
+  y "Subir ticket" (cámara/galería con `expo-image-picker`).
+- **Qué hace:** cada mensaje del usuario se manda a la Edge Function
+  `ai-assistant` (`useAIAssistant`), que arma un contexto con el presupuesto
+  y los gastos reales del usuario y se lo pasa a un modelo Llama en Groq — ver
+  `ARCHITECTURE.md` sección 2 para el flujo completo. Si Groq no responde
+  (sin conexión, rate limit, etc.) aparece una burbuja de error, nunca falla
+  en silencio. Subir una imagen la adjunta al chat y responde un mensaje fijo
+  ("el análisis automático llega pronto") — todavía no hay OCR.
+- **No persiste:** el historial del chat vive solo mientras la pantalla está
+  abierta; al salir se pierde (queda para una etapa futura).
+- **Navega a:** notifications (campana).
 
 ### `AddExpenseScreen.js` — 🟢 Supabase (escritura)
 - **Muestra:** monto, selector de categoría (las 4 de `categories.js`), tienda
@@ -281,10 +293,16 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 - **Muestra:** lista de notificaciones de ejemplo agrupadas por fecha.
 - **Datos:** array `GROUPS` fijo en el código.
 
-### `AffiliatedBusinessesScreen.js` — 🟠 Hardcodeado
-- **Muestra:** buscador, toggle Lista/Mapa (el mapa es un placeholder), lista de
-  5 comercios con su % de cashback.
-- **Datos:** array `BUSINESSES` fijo.
+### `AffiliatedBusinessesScreen.js` — 🟢 Supabase
+- **Muestra:** buscador, toggle Lista/Mapa, lista de comercios afiliados con
+  su % de cashback. La vista **Mapa** pide la ubicación, muestra un mapa con
+  los supermercados cercanos (pin verde = cadena afiliada, naranja = otro) y
+  debajo los 10 más cercanos con su distancia.
+- **Datos:** **🟢** `useStores()` lee la tabla `stores`. El cashback sale de
+  `stores.cashback_pct`. El buscador filtra por nombre (en las dos vistas).
+  Maneja carga, error y vacío. El mapa usa `useUserLocation()` (expo-location)
+  y `useNearbySupermarkets()`, que consulta OpenStreetMap (API Overpass, sin
+  clave) y marca como afiliados los que coinciden por nombre con `stores`.
 - **Navega a:** discountsOffers.
 
 ### `RewardsScreen.js` — 🟠 Hardcodeado
@@ -298,16 +316,29 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 - **Datos:** array `OFFERS` fijo.
 - **Navega a:** discountsOffers.
 
-### `PriceComparerScreen.js` — 🟠 Hardcodeado
-- **Muestra:** un producto (aceite) y su precio en 3 tiendas, con "mejor precio"
-  y una recomendación.
-- **Datos:** `PRODUCT` y `STORES` fijos.
+### `PriceComparerScreen.js` — 🟢 Supabase
+- **Muestra:** un producto del catálogo y su precio en cada comercio que lo
+  cotiza, ordenado de más barato a más caro, con badge de "mejor precio",
+  cuándo se actualizó cada uno y una recomendación.
+- **Datos:** **🟢** `useStoreProducts()` para el catálogo y `useProductPrices()`
+  para los precios de `store_products`. El buscador es un **selector de
+  producto**: al escribir lista los que coinciden y al tocar uno lo compara.
+- **Lo que se calcula, no se escribe a mano:** `best` es simplemente el primero
+  de la lista ordenada por precio, y la "Recomendación Asentli" se computa con
+  la diferencia real entre el comercio más barato y el más caro (antes era una
+  frase fija con un ahorro inventado), más el cashback del ganador.
 - **Navega a:** shoppingStore.
 
-### `ShoppingStoreScreen.js` — 🟠 Hardcodeado
-- **Muestra:** buscador, categorías, grilla de "productos recomendados" con botón
-  "Add" (no agrega nada real).
-- **Datos:** array `PRODUCTS` fijo.
+### `ShoppingStoreScreen.js` — 🟢 Supabase
+- **Muestra:** buscador, chips de categoría, grilla de productos con su precio
+  más bajo disponible y en qué comercio, y botón "Add".
+- **Datos:** **🟢** `useStoreProducts()` sobre `products` + `store_products`.
+  El catálogo son los **22 artículos de la canasta básica oficial** — ver
+  [`CATALOG.md`](CATALOG.md).
+- **Los chips de categoría se derivan del catálogo**, no de una lista fija: así
+  `other` (que la canasta básica no usa) no aparece como pestaña vacía.
+- **Pendiente:** el botón "Add" cuenta en estado local; no hay carrito real ni
+  conexión con `BasketScreen`.
 
 ### `DiscountsOffersScreen.js` — 🟠 Hardcodeado
 - **Muestra:** hero "Save More with Asentli" + lista de cupones por tienda con
@@ -343,17 +374,17 @@ Detalle técnico en `ARCHITECTURE.md`, sección 9.
 | EditProfileScreen | 🔵+🟢 | `useUser`, `useUpdateName`, `useProfile`, `useSetProfile` |
 | ChangePasswordScreen | 🔵 | `useUpdatePassword` |
 | CardScreen | 🟢+🟠 | `useBudget`, `useMonthExpenses`, `useRecentExpenses` |
-| AIAssistantScreen | 🟠 | — |
+| AIAssistantScreen | 🟢+🟣 | `useBudget`, `useMonthExpenses`, `useAIAssistant` |
 | AddExpenseScreen | 🟢 (escribe) | `useAddExpense` |
 | EditBudgetScreen | 🟢 | `useBudget`, `useSetBudget` |
 | BudgetDetailsScreen | 🟢 | `useBudget`, `useMonthExpenses` |
 | PurchaseHistoryScreen | 🟢 | `useRecentExpenses(50)` |
 | NotificationsScreen | 🟠 | — |
-| AffiliatedBusinessesScreen | 🟠 | — |
+| AffiliatedBusinessesScreen | 🟢 | `useStores` |
 | RewardsScreen | 🟠 | — |
 | AvailableOffersScreen | 🟠 | — |
-| PriceComparerScreen | 🟠 | — |
-| ShoppingStoreScreen | 🟠 | — |
+| PriceComparerScreen | 🟢 | `useStoreProducts`, `useProductPrices` |
+| ShoppingStoreScreen | 🟢 | `useStoreProducts` |
 | DiscountsOffersScreen | 🟠 | — |
 | PlaceholderScreen | 🟠 | — |
 

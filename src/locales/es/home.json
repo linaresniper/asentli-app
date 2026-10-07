@@ -1,0 +1,72 @@
+{
+  "home": {
+    "budgetTitle": "Presupuesto del hogar",
+    "loadingSpending": "Cargando tus gastos…",
+    "spendingThisMonth": "Tu gasto este mes de {{amount}}",
+    "setBudgetHint": "Configurá un presupuesto mensual para seguir tus gastos",
+    "noExpensesThisMonth": "Aún no tienes gastos registrados este mes.",
+    "aiAssistant": "Asistente IA",
+    "myCard": "Mi tarjeta",
+    "affiliatedStores": "Tiendas afiliadas",
+    "seeAll": "Ver todo",
+    "storeCashback": "5% Cashback en Canasta",
+    "storeDistance": "📍 A 500m de vos",
+    "offerLabel": "OFERTA DEL DÍA",
+    "offerText": "Ahorra $5 en tu próxima compra de lácteos",
+    "offerLink": "Válido en tiendas afiliadas",
+    "addExpenseFab": "Agregar gasto"
+  },
+  "card": {
+    "greeting": "Hola, Usuario",
+    "pageTitle": "Billetera familiar",
+    "familyDebit": "DÉBITO FAMILIAR",
+    "cardHolderLabel": "TITULAR",
+    "cardHolderValue": "USERNAME",
+    "expirationLabel": "VENCIMIENTO",
+    "payBasket": "Pagar canasta",
+    "comparePrices": "Comparar precios",
+    "cashback": "Cashback",
+    "availableBalance": "Saldo disponible",
+    "income": "Ingresos",
+    "expensesThisMonth": "Gastos (este mes)",
+    "basketProgressTitle": "Progreso de\nCanasta Básica",
+    "basketProgressPercent": "75% Completado",
+    "goal": "Meta",
+    "current": "Actual",
+    "daysLeft": "Días restantes",
+    "daysLeftValue": "12 días",
+    "doingWell": "¡Vas muy bien!",
+    "recentMovements": "Movimientos recientes",
+    "seeAll": "Ver todo",
+    "noMovementsTitle": "Sin movimientos todavía",
+    "noMovementsSubtitle": "Tus gastos registrados van a aparecer acá."
+  },
+  "statistics": {
+    "title": "Análisis de consumo",
+    "periodLabel": {
+      "weekly": "Esta semana",
+      "monthly": "Este mes",
+      "yearly": "Este año"
+    },
+    "spent": "gastado",
+    "totalSpent": "Total gastado",
+    "addExpenseHint": "Agregá un gasto con el botón + en Home para ver tus estadísticas.",
+    "spendingInsight": "Análisis de gasto",
+    "viewPurchaseHistory": "Ver historial de compras →",
+    "asentliTip": "Consejo Asentli",
+    "tipText": "Registrá cada gasto apenas lo hacés — así la dona y el presupuesto se mantienen al día.",
+    "seeYourCashback": "Ver tu cashback →",
+    "periodWord": {
+      "weekly": "la semana pasada",
+      "monthly": "el mes pasado",
+      "yearly": "el año pasado"
+    },
+    "insight": {
+      "none": "Todavía no hay gastos para comparar.",
+      "first": "Estos son tus primeros gastos registrados — todavía no hay con qué compararlos contra {{period}}.",
+      "same": "Gastaste prácticamente lo mismo que {{period}}.",
+      "more": "Gastaste {{amount}} más que {{period}}.",
+      "less": "Gastaste {{amount}} menos que {{period}}."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Notificaciones",
+  "empty": "Estás al día — no hay alertas por ahora.",
+  "budgetOverTitle": "Presupuesto",
+  "budgetOver": "Llegaste al {{percent}}% de tu presupuesto mensual — gastaste {{spent}} de {{monthlyTotal}}.",
+  "budgetWarningTitle": "Presupuesto",
+  "budgetWarning": "Estás al {{percent}}% de tu presupuesto mensual — te quedan {{remaining}}.",
+  "largeExpenseTitle": "Gasto grande",
+  "largeExpenseWithMerchant": "Gasto grande: {{amount}} en {{merchant}}.",
+  "largeExpenseNoMerchant": "Se registró un gasto grande: {{amount}}."
+}

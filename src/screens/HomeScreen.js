@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import Fab from '../components/Fab';
@@ -9,9 +10,14 @@ import { useBudget, useMonthExpenses } from '../hooks/useExpenseData';
 import { sumAmount, weeklyBars } from '../lib/expenseMath';
 import { formatMoney } from '../lib/dates';
 
-const BAR_COLORS = [colors.saladGreen, colors.bottleGreen, colors.primary, '#F5C9A8'];
-
 export default function HomeScreen({ onNavigate, onAddExpense }) {
+    const { t } = useTranslation('home');
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
+    // bottleGreenText y no bottleGreen: en claro es el mismo #003223, pero
+    // en oscuro pasa a verde menta. Como relleno de barra no lleva nada
+    // encima, el verde casi negro daba 1.27:1 contra el fondo oscuro.
+    const BAR_COLORS = [colors.saladGreen, colors.bottleGreenText, colors.primary, colors.catOther];
     const go = (key) => onNavigate && onNavigate(key);
 
     const budgetQ = useBudget();
@@ -33,7 +39,7 @@ export default function HomeScreen({ onNavigate, onAddExpense }) {
                 {/* Budget card */}
                 <TouchableOpacity activeOpacity={0.9} style={styles.budgetCard} onPress={() => go('budgetDetails')}>
                     <View style={styles.budgetHeaderRow}>
-                        <Text style={styles.budgetTitle}>Household budget</Text>
+                        <Text style={styles.budgetTitle}>{t('home.budgetTitle')}</Text>
                         {loading ? (
                             <ActivityIndicator size="small" color={colors.primary} />
                         ) : (
@@ -42,82 +48,80 @@ export default function HomeScreen({ onNavigate, onAddExpense }) {
                     </View>
                     <Text style={styles.budgetSubtitle}>
                         {loading
-                            ? 'Loading your spending…'
+                            ? t('home.loadingSpending')
                             : monthlyTotal > 0
-                            ? `Your spending this month of ${formatMoney(monthlyTotal)}`
-                            : 'Set a monthly budget to track your spending'}
+                            ? t('home.spendingThisMonth', { amount: formatMoney(monthlyTotal) })
+                            : t('home.setBudgetHint')}
                     </Text>
 
                     <View style={styles.chartRow}>
                         {bars.map((b, i) => {
                             const height = maxBar > 0 ? 8 + (b.amount / maxBar) * 92 : 6;
                             return (
-                                <View key={b.label} style={styles.barColumn}>
+                                <View key={b.n} style={styles.barColumn}>
                                     <View
                                         style={[
                                             styles.bar,
                                             { height, backgroundColor: BAR_COLORS[i % BAR_COLORS.length] },
                                         ]}
                                     />
-                                    <Text style={styles.barLabel}>{b.label}</Text>
+                                    <Text style={styles.barLabel}>{t('common:week', { n: b.n })}</Text>
                                 </View>
                             );
                         })}
                     </View>
                     {!loading && !hasData && (
-                        <Text style={styles.emptyHint}>Aún no tienes gastos registrados este mes.</Text>
+                        <Text style={styles.emptyHint}>{t('home.noExpensesThisMonth')}</Text>
                     )}
                 </TouchableOpacity>
 
                 {/* Action buttons */}
                 <View style={styles.actionsRow}>
                     <TouchableOpacity style={[styles.actionButton, styles.aiButton]} onPress={() => go('ai')}>
-                        <Ionicons name="sparkles" size={24} color={colors.card} style={styles.actionIcon} />
-                        <Text style={styles.actionText}>AI Assistant</Text>
+                        <Ionicons name="sparkles" size={24} color="#FFFFFF" style={styles.actionIcon} />
+                        <Text style={styles.actionText}>{t('home.aiAssistant')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.actionButton, styles.cardButton]} onPress={() => go('card')}>
-                        <Ionicons name="card" size={24} color={colors.card} style={styles.actionIcon} />
-                        <Text style={[styles.actionText, { color: colors.card }]}>My Card</Text>
+                        <Ionicons name="card" size={24} color="#FFFFFF" style={styles.actionIcon} />
+                        <Text style={styles.actionText}>{t('home.myCard')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Affiliated stores */}
                 <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Affiliated Stores</Text>
+                    <Text style={styles.sectionTitle}>{t('home.affiliatedStores')}</Text>
                     <TouchableOpacity onPress={() => go('affiliated')}>
-                        <Text style={styles.seeAll}>See All</Text>
+                        <Text style={styles.seeAll}>{t('home.seeAll')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity activeOpacity={0.9} style={styles.storeCard} onPress={() => go('affiliated')}>
                     <View style={styles.storeLogo}>
-                        <Ionicons name="storefront" size={22} color={colors.bottleGreen} />
+                        <Ionicons name="storefront" size={22} color={colors.bottleGreenText} />
                     </View>
                     <View style={styles.storeInfo}>
                         <Text style={styles.storeName}>Súper Selectos</Text>
-                        <Text style={styles.storeDetail}>5% Cashback en Canasta</Text>
-                        <Text style={styles.storeDistance}>📍 A 500m from you</Text>
+                        <Text style={styles.storeDetail}>{t('home.storeCashback')}</Text>
+                        <Text style={styles.storeDistance}>{t('home.storeDistance')}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
                 </TouchableOpacity>
 
                 {/* Offer banner */}
                 <TouchableOpacity activeOpacity={0.9} style={styles.offerCard} onPress={() => go('availableOffers')}>
-                    <Text style={styles.offerLabel}>OFERTA DEL DÍA</Text>
-                    <Text style={styles.offerText}>
-                        Ahorra $5 en tu próxima compra de lácteos
-                    </Text>
-                    <Text style={styles.offerLink}>Válido en tiendas afiliadas</Text>
+                    <Text style={styles.offerLabel}>{t('home.offerLabel')}</Text>
+                    <Text style={styles.offerText}>{t('home.offerText')}</Text>
+                    <Text style={styles.offerLink}>{t('home.offerLink')}</Text>
                 </TouchableOpacity>
             </ScrollView>
 
-            <Fab onPress={onAddExpense} label="Add expense" />
+            <Fab onPress={onAddExpense} label={t('home.addExpenseFab')} />
             <BottomNav active="Home" onNavigate={onNavigate} />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
     flex: { flex: 1, backgroundColor: colors.card },
     content: { padding: 20, paddingBottom: 20 },
 
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
     aiButton: { backgroundColor: colors.primary },
     cardButton: { backgroundColor: colors.bottleGreen },
     actionIcon: { marginBottom: 6 },
-    actionText: { color: colors.card, fontWeight: '600', fontSize: 13 },
+    actionText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
 
     sectionHeaderRow: {
         flexDirection: 'row',

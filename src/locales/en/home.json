@@ -1,0 +1,72 @@
+{
+  "home": {
+    "budgetTitle": "Household budget",
+    "loadingSpending": "Loading your spending…",
+    "spendingThisMonth": "Your spending this month of {{amount}}",
+    "setBudgetHint": "Set a monthly budget to track your spending",
+    "noExpensesThisMonth": "You don't have any expenses yet this month.",
+    "aiAssistant": "AI Assistant",
+    "myCard": "My Card",
+    "affiliatedStores": "Affiliated Stores",
+    "seeAll": "See All",
+    "storeCashback": "5% Cashback on Basket",
+    "storeDistance": "📍 A 500m from you",
+    "offerLabel": "DEAL OF THE DAY",
+    "offerText": "Save $5 on your next dairy purchase",
+    "offerLink": "Valid at affiliated stores",
+    "addExpenseFab": "Add expense"
+  },
+  "card": {
+    "greeting": "Hi, User",
+    "pageTitle": "Your Family Wallet",
+    "familyDebit": "FAMILY DEBIT",
+    "cardHolderLabel": "HEADLINE",
+    "cardHolderValue": "USERNAME",
+    "expirationLabel": "EXPIRATION",
+    "payBasket": "Pay basket",
+    "comparePrices": "Compare prices",
+    "cashback": "Cashback",
+    "availableBalance": "Available Balance",
+    "income": "Income",
+    "expensesThisMonth": "Expenses (this month)",
+    "basketProgressTitle": "Basic Basket\nProgress",
+    "basketProgressPercent": "75% Done",
+    "goal": "Goal",
+    "current": "Current",
+    "daysLeft": "Days left",
+    "daysLeftValue": "12 days",
+    "doingWell": "You're doing well!",
+    "recentMovements": "Recent Movements",
+    "seeAll": "See all",
+    "noMovementsTitle": "No movements yet",
+    "noMovementsSubtitle": "Your recorded expenses will show up here."
+  },
+  "statistics": {
+    "title": "Consumption Insights",
+    "periodLabel": {
+      "weekly": "This week",
+      "monthly": "This month",
+      "yearly": "This year"
+    },
+    "spent": "spent",
+    "totalSpent": "Total spent",
+    "addExpenseHint": "Add an expense using the + button on Home to see your stats.",
+    "spendingInsight": "Spending Insight",
+    "viewPurchaseHistory": "View purchase history →",
+    "asentliTip": "Asentli Tip",
+    "tipText": "Record every expense as soon as you make it — that way the chart and budget stay up to date.",
+    "seeYourCashback": "See your cashback →",
+    "periodWord": {
+      "weekly": "last week",
+      "monthly": "last month",
+      "yearly": "last year"
+    },
+    "insight": {
+      "none": "No spending yet to compare.",
+      "first": "This is your first tracked spending — nothing to compare against {{period}} yet.",
+      "same": "You spent about the same as {{period}}.",
+      "more": "You spent {{amount}} more than {{period}}.",
+      "less": "You spent {{amount}} less than {{period}}."
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { Chips, Thumb } from '../components/ui';
@@ -43,12 +44,15 @@ const OFFERS = [
 ];
 
 export default function AvailableOffersScreen({ onBack, onNavigate, onBell, onOpenOffer }) {
+  const { t } = useTranslation('shopping');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [category, setCategory] = useState('All');
   const visible = category === 'All' ? OFFERS : OFFERS.filter((o) => o.category === category);
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Available Offers" onBack={onBack} onBell={onBell} />
+      <ScreenHeader title={t('availableOffers.title')} onBack={onBack} onBell={onBell} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Chips options={CATEGORIES} value={category} onChange={setCategory} />
@@ -75,7 +79,7 @@ export default function AvailableOffersScreen({ onBack, onNavigate, onBell, onOp
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  store: { fontSize: 14, fontWeight: '800', color: colors.bottleGreen },
+  store: { fontSize: 14, fontWeight: '800', color: colors.bottleGreenText },
   offer: { fontSize: 14, fontWeight: '600', color: colors.text, lineHeight: 20 },
   valid: { fontSize: 12, color: colors.textLight, marginTop: 8 },
 });

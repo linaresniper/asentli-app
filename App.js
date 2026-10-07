@@ -4,7 +4,11 @@ import { View, StyleSheet } from 'react-native';
 import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { queryClient } from './src/lib/queryClient';
+import { PreferencesProvider } from './src/context/PreferencesProvider';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import './src/i18n';
 
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
@@ -20,6 +24,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import PlaceholderScreen from './src/screens/PlaceholderScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 import AddExpenseScreen from './src/screens/AddExpenseScreen';
 import EditBudgetScreen from './src/screens/EditBudgetScreen';
@@ -47,15 +52,24 @@ if (!publishableKey) {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <QueryClientProvider client={queryClient}>
-        <View style={styles.flex}>
-          <RootGate />
-          <StatusBar style="auto" />
-        </View>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <PreferencesProvider>
+      <ThemeProvider>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <QueryClientProvider client={queryClient}>
+            <View style={styles.flex}>
+              <RootGate />
+              <ThemedStatusBar />
+            </View>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </ThemeProvider>
+    </PreferencesProvider>
   );
+}
+
+function ThemedStatusBar() {
+  const { isDark } = useTheme();
+  return <StatusBar style={isDark ? 'light' : 'dark'} />;
 }
 
 /** Decides between splash / auth flow / main app based on the Clerk session. */
@@ -99,6 +113,7 @@ function AuthFlow() {
 
 /** Signed-in app. Same useState history-stack pattern as before. */
 function MainApp({ needsTerms }) {
+  const { t } = useTranslation('common');
   const [termsDone, setTermsDone] = useState(!needsTerms);
   const [stack, setStack] = useState(['home']);
   const screen = stack[stack.length - 1];
@@ -243,14 +258,16 @@ function MainApp({ needsTerms }) {
 
       {screen === 'family' && (
         <PlaceholderScreen
-          title="Family members"
+          title={t('familyMembers')}
           onBack={back}
           onNavigate={go}
           activeTab="Profile"
           emoji="👨‍👩‍👧‍👦"
-          message="Próximamente: varios miembros de una familia compartiendo presupuesto."
+          message={t('familyMembersComingSoon')}
         />
       )}
+
+      {screen === 'settings' && <SettingsScreen onBack={back} />}
     </>
   );
 }

@@ -1,0 +1,77 @@
+{
+  "bestPrice": "Mejor precio",
+  "basket": {
+    "title": "Lista de compras",
+    "searchPlaceholder": "Buscar productos...",
+    "comparatorTitle": "Comparador de precios",
+    "comparatorSubtitle": "Tu canasta en 2 tiendas",
+    "weeklyGoal": "Meta semanal",
+    "weeklyGoalHint": "Te quedan $15.15 del presupuesto semanal de la canasta."
+  },
+  "priceComparer": {
+    "title": "Comparador de precios",
+    "searchPlaceholder": "Buscar un producto...",
+    "storesByPrice": "Tiendas por precio",
+    "recommendationTitle": "Recomendación Asentli",
+    "openStore": "Ver tienda →",
+    "pickProduct": "Elegí un producto para comparar",
+    "noResults": "Ningún producto coincide con esa búsqueda",
+    "noPrices": "Todavía ningún comercio reportó precio para este producto",
+    "loadError": "No se pudieron cargar los precios",
+    "updatedAgo": "Actualizado {{date}}",
+    "recommendationReal": "Comprarlo en {{store}} te ahorra {{amount}} frente al comercio más caro.",
+    "recommendationSinglePrice": "Por ahora solo {{store}} reportó precio para este producto.",
+    "cashbackNote": "{{store}} además te da {{pct}}% de cashback."
+  },
+  "shoppingStore": {
+    "title": "Tienda",
+    "searchPlaceholder": "Buscar productos...",
+    "recommendedProducts": "Productos recomendados",
+    "cat_All": "Todos",
+    "loadError": "No se pudo cargar el catálogo",
+    "loadErrorHint": "Revisá tu conexión e intentá de nuevo.",
+    "empty": "Todavía no hay productos en esta categoría",
+    "noPrice": "Sin precio aún",
+    "from": "en {{store}}"
+  },
+  "discountsOffers": {
+    "title": "Descuentos y ofertas",
+    "heroTitle": "Ahorrá más con Asentli",
+    "heroText": "Cupones exclusivos de comercios afiliados en todo El Salvador, actualizados cada semana para la canasta de tu familia.",
+    "availableCoupons": "Cupones disponibles",
+    "use": "Usar"
+  },
+  "availableOffers": {
+    "title": "Ofertas disponibles"
+  },
+  "affiliatedBusinesses": {
+    "title": "Comercios afiliados",
+    "searchPlaceholder": "Buscar comercio",
+    "view_List": "Lista",
+    "view_Map": "Mapa",
+    "loadError": "No se pudieron cargar los comercios",
+    "empty": "Todavía no hay comercios afiliados",
+    "cashback": "{{pct}}%",
+    "locating": "Buscando tu ubicación…",
+    "locationDenied": "Necesitamos tu ubicación para mostrarte los supermercados cercanos",
+    "locationError": "No pudimos obtener tu ubicación",
+    "openSettings": "Abrir ajustes",
+    "retry": "Reintentar",
+    "nearbyTitle": "Supermercados cercanos",
+    "nearbyEmpty": "No encontramos supermercados cerca",
+    "nearbyError": "No se pudieron cargar los supermercados cercanos",
+    "affiliatedTag": "Afiliado",
+    "distance": "a {{distance}}",
+    "osmAttribution": "© OpenStreetMap contributors",
+    "mapWebUnavailable": "El mapa solo está disponible en la app móvil"
+  },
+  "rewards": {
+    "title": "Recompensas (Cashback)",
+    "totalAvailable": "Cashback total disponible",
+    "withdraw": "Retirar cashback",
+    "history": "Historial de cashback",
+    "keepShoppingTitle": "¡Seguí comprando!",
+    "keepShoppingText": "Te faltan $4.70 para tu próxima recompensa de $10 de cashback. Cada compra afiliada cuenta.",
+    "browseStore": "Ver la tienda"
+  }
+}

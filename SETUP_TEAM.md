@@ -209,6 +209,16 @@ Para que funcione:
 
 No hace falta tocar `.env` para esto: el login con Google va todo por Clerk.
 
+### Mapa de supermercados (react-native-maps)
+
+- **En Expo Go funciona sin configurar nada.**
+- **Para una build de Android** (EAS / `expo run:android`) hace falta una API
+  key de **Maps SDK for Android** de Google Cloud, restringida al package de
+  la app. Va en `app.json` → `expo.android.config.googleMaps.apiKey`. En iOS
+  se usa Apple Maps por defecto y no lleva clave.
+- Los puntos de los supermercados salen de OpenStreetMap (Overpass), que no
+  usa clave.
+
 ---
 
 ## 7. Paso 5 — Arrancar y probar

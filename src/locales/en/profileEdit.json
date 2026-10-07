@@ -1,0 +1,35 @@
+{
+  "editProfile": {
+    "title": "Edit Profile",
+    "nameLabel": "First name",
+    "namePlaceholder": "Your first name",
+    "lastNameLabel": "Last name",
+    "lastNamePlaceholder": "Your last name",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "e.g. 7000-0000",
+    "emailLabel": "Email",
+    "emailHint": "To change your email, contact support — it can't be edited from here yet.",
+    "saving": "Saving…",
+    "saveChanges": "Save changes",
+    "genericSaveError": "Couldn't save your changes. Please try again."
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "noPasswordHint": "Your account uses Google to sign in and doesn't have a password yet. If you create one here, you'll also be able to sign in with email and password.",
+    "currentPasswordLabel": "Current password",
+    "currentPasswordRequired": "Enter your current password",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "At least 8 characters",
+    "newPasswordTooShort": "Must be at least 8 characters",
+    "confirmPasswordLabel": "Confirm new password",
+    "confirmPasswordPlaceholder": "Repeat the password",
+    "passwordsDontMatch": "Passwords don't match",
+    "showPasswords": "Show passwords",
+    "hidePasswords": "Hide passwords",
+    "successTitle": "Done",
+    "successMessage": "Your password was updated successfully.",
+    "genericError": "Couldn't change the password.",
+    "saving": "Saving…",
+    "savePassword": "Save password"
+  }
+}

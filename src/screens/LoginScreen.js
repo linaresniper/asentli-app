@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSignIn } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import { clerkErrorMessage } from '../lib/clerkErrors';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import GoogleButton from '../components/GoogleButton';
@@ -21,6 +22,9 @@ import GoogleButton from '../components/GoogleButton';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ onForgotPassword, onSignUp }) {
+  const { t } = useTranslation('auth');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { isLoaded, signIn, setActive } = useSignIn();
   const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
@@ -33,9 +37,9 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
 
   const validate = () => {
     const next = {};
-    if (!email.trim()) next.email = 'El correo es obligatorio';
-    else if (!EMAIL_RE.test(email.trim())) next.email = 'Correo no válido';
-    if (!password) next.password = 'La contraseña es obligatoria';
+    if (!email.trim()) next.email = t('login.emailRequired');
+    else if (!EMAIL_RE.test(email.trim())) next.email = t('login.emailInvalid');
+    if (!password) next.password = t('login.passwordRequired');
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -50,10 +54,10 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
         await setActive({ session: res.createdSessionId });
         // Auth gate takes over from here.
       } else {
-        setFormError('Tu cuenta necesita un paso adicional para iniciar sesión.');
+        setFormError(t('login.extraStepNeeded'));
       }
     } catch (err) {
-      setFormError(clerkErrorMessage(err, 'No se pudo iniciar sesión.'));
+      setFormError(clerkErrorMessage(err, t('login.genericError')));
     } finally {
       setSubmitting(false);
     }
@@ -68,12 +72,12 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <Image source={require('../../assets/asentli-logo.jpg')} style={styles.logo} />
 
-          <Text style={styles.title}>Welcome to Asentli</Text>
-          <Text style={styles.subtitle}>Fintech familiar</Text>
+          <Text style={styles.title}>{t('login.title')}</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
 
           <View style={styles.card}>
             <View style={styles.field}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('login.emailLabel')}</Text>
               <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
                 <Text style={styles.icon}>✉️</Text>
                 <TextInput
@@ -91,9 +95,9 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
 
             <View style={styles.field}>
               <View style={styles.passwordHeader}>
-                <Text style={styles.label}>Password</Text>
+                <Text style={styles.label}>{t('login.passwordLabel')}</Text>
                 <TouchableOpacity onPress={onForgotPassword}>
-                  <Text style={styles.forgotLink}>Forgot password?</Text>
+                  <Text style={styles.forgotLink}>{t('login.forgotPassword')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
@@ -121,15 +125,15 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color={colors.card} />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.buttonText}>GO!  →</Text>
+                <Text style={styles.buttonText}>{t('login.goButton')}</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or sign in with</Text>
+              <Text style={styles.dividerText}>{t('login.orSignInWith')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -138,9 +142,9 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
           </View>
 
           <View style={styles.signupRow}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Text style={styles.signupText}>{t('login.noAccount')}</Text>
             <TouchableOpacity onPress={onSignUp}>
-              <Text style={styles.signupLink}>Sign up for free</Text>
+              <Text style={styles.signupLink}>{t('login.signUpFree')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -149,7 +153,7 @@ export default function LoginScreen({ onForgotPassword, onSignUp }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1 },
   container: {
     flexGrow: 1,
@@ -173,6 +177,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 6,
   },
@@ -240,7 +245,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: {
-    color: colors.card,
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
   },

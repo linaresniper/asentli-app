@@ -1,4 +1,10 @@
 // Small date helpers for expense aggregation. Local time, no external lib.
+//
+// Los helpers que devuelven TEXTO visible (nombres de mes, hora) usan
+// `i18n.t` directo en vez del hook `useTranslation`: son funciones puras
+// llamadas desde el render de pantallas que ya están suscritas a i18n con
+// `useTranslation`, así que al cambiar de idioma se vuelven a evaluar.
+import i18n from '../i18n';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -87,24 +93,36 @@ export function weekBucketsOfMonth(ref = new Date()) {
     from.setDate(edges[i]);
     const to = new Date(first);
     to.setDate(edges[i + 1]);
-    buckets.push({ label: `Week ${i + 1}`, from, to });
+    buckets.push({ n: i + 1, from, to });
   }
   return buckets;
 }
 
-/** 'Today' | 'Yesterday' | 'Last Week' | 'Earlier' for grouping a list. */
+/** i18n key under `common:relativeDays.*` for grouping a list. */
 export function relativeDayGroup(date, now = new Date()) {
   const d = startOfDay(date).getTime();
   const today = startOfDay(now).getTime();
-  if (d === today) return 'Today';
-  if (d === today - DAY) return 'Yesterday';
-  if (d > today - 7 * DAY) return 'Last Week';
-  return 'Earlier';
+  if (d === today) return 'today';
+  if (d === today - DAY) return 'yesterday';
+  if (d > today - 7 * DAY) return 'lastWeek';
+  return 'earlier';
 }
 
-export const RELATIVE_GROUP_ORDER = ['Today', 'Yesterday', 'Last Week', 'Earlier'];
+export const RELATIVE_GROUP_ORDER = ['today', 'yesterday', 'lastWeek', 'earlier'];
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+/** Short month name in the active language ('Sep' / 'Sep', 'Dec' / 'Dic'). */
+export function monthShortName(monthIndex) {
+  return i18n.t(`common:months.${MONTH_KEYS[monthIndex] ?? 'jan'}`);
+}
+
+/** 'Sep 14, 2026' in the active language. */
+export function formatDate(date) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${monthShortName(d.getMonth())} ${d.getDate()}, ${d.getFullYear()}`;
+}
 
 // Hand-rolled so it doesn't depend on Hermes's partial Intl number support.
 export function formatMoney(n) {
@@ -128,5 +146,5 @@ export function formatTime(date) {
 export function formatDateTime(date) {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${formatTime(d)}`;
+  return `${monthShortName(d.getMonth())} ${d.getDate()}, ${formatTime(d)}`;
 }

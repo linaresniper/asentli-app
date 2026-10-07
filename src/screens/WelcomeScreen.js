@@ -2,12 +2,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function WelcomeScreen({ onSignUp, onSignIn }) {
+    const { t } = useTranslation('auth');
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
     return (
         <LinearGradient
-            colors={[colors.gradientTop, '#FFFFFF']}
+            colors={[colors.gradientTop, colors.card]}
             style={styles.gradient}
         >
             <View style={styles.container}>
@@ -20,15 +24,15 @@ export default function WelcomeScreen({ onSignUp, onSignIn }) {
                 </View>
 
                 <Text style={styles.brand}>ASENTLI</Text>
-                <Text style={styles.tagline}>FINTECH FAMILIAR</Text>
+                <Text style={styles.tagline}>{t('welcome.tagline')}</Text>
 
                 <View style={styles.buttonsWrapper}>
                     <TouchableOpacity style={styles.signUpButton} onPress={onSignUp}>
-                        <Text style={styles.signUpText}>Sign up</Text>
+                        <Text style={styles.signUpText}>{t('welcome.signUp')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.signInButton} onPress={onSignIn}>
-                        <Text style={styles.signInText}>Sign in</Text>
+                        <Text style={styles.signInText}>{t('welcome.signIn')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -36,7 +40,7 @@ export default function WelcomeScreen({ onSignUp, onSignIn }) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
     gradient: {
         flex: 1,
     },
@@ -63,7 +67,7 @@ const styles = StyleSheet.create({
     brand: {
         fontSize: 28,
         fontWeight: '800',
-        color: colors.bottleGreen,
+        color: colors.bottleGreenText,
         letterSpacing: 1,
         textAlign: 'center',
     },
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     signUpText: {
-        color: colors.card,
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },

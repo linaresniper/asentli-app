@@ -1,0 +1,11 @@
+{
+  "title": "Notifications",
+  "empty": "You're all caught up — no alerts right now.",
+  "budgetOverTitle": "Budget",
+  "budgetOver": "You've reached {{percent}}% of your monthly budget — {{spent}} spent of {{monthlyTotal}}.",
+  "budgetWarningTitle": "Budget",
+  "budgetWarning": "You're at {{percent}}% of your monthly budget — {{remaining}} left.",
+  "largeExpenseTitle": "Big expense",
+  "largeExpenseWithMerchant": "Big expense: {{amount}} at {{merchant}}.",
+  "largeExpenseNoMerchant": "Big expense logged: {{amount}}."
+}

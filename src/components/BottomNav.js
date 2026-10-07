@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 
 /**
  * Shared bottom navigation. Same 4 tabs on every screen.
@@ -16,6 +17,9 @@ const tabs = [
 ];
 
 export default function BottomNav({ active = 'Home', onNavigate }) {
+  const { t } = useTranslation('common');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <View style={styles.bottomNav}>
       {tabs.map((tab) => {
@@ -29,10 +33,10 @@ export default function BottomNav({ active = 'Home', onNavigate }) {
             <Ionicons
               name={tab.icon}
               size={22}
-              color={isActive ? colors.card : '#8FA89C'}
+              color={isActive ? '#FFFFFF' : '#8FA89C'}
             />
             <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-              {tab.key}
+              {t(`nav.${tab.key.toLowerCase()}`)}
             </Text>
             {isActive && <View style={styles.tabDot} />}
           </TouchableOpacity>
@@ -42,7 +46,7 @@ export default function BottomNav({ active = 'Home', onNavigate }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: colors.bottleGreen,
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
   },
   tabButton: { flex: 1, alignItems: 'center' },
   tabLabel: { fontSize: 11, color: '#8FA89C' },
-  tabLabelActive: { color: colors.card, fontWeight: '700' },
+  tabLabelActive: { color: '#FFFFFF', fontWeight: '700' },
   tabDot: {
     width: 4,
     height: 4,

@@ -1,0 +1,53 @@
+{
+  "budgetDetails": {
+    "title": "Budget Details",
+    "availableBudget": "Available Budget",
+    "of": "of",
+    "remainingThisMonth": "{{pct}}% remaining this month",
+    "noBudgetSet": "No budget set yet",
+    "allocated": "Allocated",
+    "remaining": "Remaining",
+    "breakdown": "Budget Breakdown",
+    "noExpensesTitle": "No expenses this month",
+    "noExpensesSubtitle": "Once you record expenses, you'll see how they break down by category here.",
+    "pctOfBudget": "{{pct}}% of budget",
+    "setBudgetToSeePct": "set a budget to see %",
+    "editBudgetBtn": "Edit Budget",
+    "setBudgetBtn": "Set Budget"
+  },
+  "editBudget": {
+    "title": "Edit Budget",
+    "help": "Decide how much your family wants to spend per month. The budget and statistics screens use this number.",
+    "label": "Monthly budget",
+    "amountPlaceholder": "0.00",
+    "invalidAmount": "Enter a valid amount (0 or more)",
+    "saveError": "Couldn't save the budget.",
+    "currentBudget": "Current: {{amount}}",
+    "saving": "Saving…",
+    "saveBudgetBtn": "Save budget"
+  },
+  "addExpense": {
+    "title": "Add Expense",
+    "amountLabel": "Amount",
+    "invalidAmount": "Enter a valid amount greater than $0",
+    "selectCategory": "Choose a category",
+    "saveError": "Couldn't save the expense. Check your connection.",
+    "categoryLabel": "Category",
+    "merchantLabel": "Store / merchant",
+    "merchantPlaceholder": "E.g. Súper Selectos",
+    "dateLabel": "Date",
+    "today": "Today",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Expense details…",
+    "saving": "Saving…",
+    "saveExpenseBtn": "Save expense"
+  },
+  "purchaseHistory": {
+    "title": "Purchase History",
+    "searchPlaceholder": "Search transactions...",
+    "loadErrorTitle": "Couldn't load your expenses",
+    "loadErrorSubtitle": "Check your connection and try again.",
+    "noResults": "No results",
+    "addExpenseHint": "Add an expense using the + button on Home."
+  }
+}

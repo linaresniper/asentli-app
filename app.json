@@ -10,14 +10,6 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
-    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
@@ -28,8 +20,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Asentli necesita acceso a tus fotos para elegir una imagen de perfil.",
-          "cameraPermission": "Asentli necesita acceso a la cámara para tomar una foto de perfil."
+          "photosPermission": "Asentli needs access to your photos to set a profile picture or attach a receipt image.",
+          "cameraPermission": "Asentli needs access to your camera to take a profile picture or photograph a receipt."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Asentli usa tu ubicación para mostrarte los supermercados cercanos."
         }
       ]
     ]

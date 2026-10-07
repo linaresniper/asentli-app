@@ -9,13 +9,17 @@ import {
   Platform,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { PillButton } from '../components/ui';
 import { useProfile, useSetProfile, useUpdateName } from '../hooks/useUserProfile';
 import { clerkErrorMessage } from '../lib/clerkErrors';
 
 export default function EditProfileScreen({ onBack, onSaved }) {
+  const { t } = useTranslation('profileEdit');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { user } = useUser();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const updateName = useUpdateName();
@@ -48,56 +52,54 @@ export default function EditProfileScreen({ onBack, onSaved }) {
       ]);
       onSaved?.();
     } catch (err) {
-      setFormError(clerkErrorMessage(err, 'No se pudieron guardar los cambios. Intentá de nuevo.'));
+      setFormError(clerkErrorMessage(err, t('editProfile.genericSaveError')));
     }
   };
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Edit Profile" onBack={onBack} />
+      <ScreenHeader title={t('editProfile.title')} onBack={onBack} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.label}>Nombre</Text>
+          <Text style={styles.label}>{t('editProfile.nameLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Tu nombre"
+            placeholder={t('editProfile.namePlaceholder')}
             placeholderTextColor={colors.textLight}
             value={firstName}
             onChangeText={setFirstName}
           />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Apellido</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>{t('editProfile.lastNameLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Tu apellido"
+            placeholder={t('editProfile.lastNamePlaceholder')}
             placeholderTextColor={colors.textLight}
             value={lastName}
             onChangeText={setLastName}
           />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Teléfono</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>{t('editProfile.phoneLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej. 7000-0000"
+            placeholder={t('editProfile.phonePlaceholder')}
             placeholderTextColor={colors.textLight}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
           />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Email</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>{t('editProfile.emailLabel')}</Text>
           <View style={[styles.input, styles.inputDisabled]}>
             <Text style={styles.disabledText}>{email}</Text>
           </View>
-          <Text style={styles.hint}>
-            Para cambiar tu correo, escribinos a soporte — no se edita desde acá todavía.
-          </Text>
+          <Text style={styles.hint}>{t('editProfile.emailHint')}</Text>
 
           {!!formError && <Text style={styles.errorText}>{formError}</Text>}
 
           <PillButton
-            label={saving ? 'Guardando…' : 'Save changes'}
+            label={saving ? t('editProfile.saving') : t('editProfile.saveChanges')}
             variant="orange"
             onPress={handleSave}
             style={{ marginTop: 24, opacity: saving ? 0.6 : 1 }}
@@ -108,7 +110,7 @@ export default function EditProfileScreen({ onBack, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 40 },
 

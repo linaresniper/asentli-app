@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { SearchBar, Chips, ProgressBar, Thumb } from '../components/ui';
@@ -32,6 +33,9 @@ const COMPARATOR = [
 ];
 
 export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, onOpenComparator, onOpenBudget }) {
+  const { t } = useTranslation('shopping');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
   const [added, setAdded] = useState({ v1: true, d1: true });
@@ -41,12 +45,12 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
   return (
     <View style={styles.flex}>
       <ScreenHeader
-        title="Shopping List"
+        title={t('basket.title')}
         onBack={onBack}
         right={
           <TouchableOpacity onPress={onOpenStore} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <View>
-              <Ionicons name="cart-outline" size={24} color={colors.bottleGreen} />
+              <Ionicons name="cart-outline" size={24} color={colors.bottleGreenText} />
               <View style={styles.cartBadge}>
                 <Text style={styles.cartBadgeText}>3</Text>
               </View>
@@ -56,7 +60,7 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <SearchBar placeholder="Search products..." value={query} onChangeText={setQuery} />
+        <SearchBar placeholder={t('basket.searchPlaceholder')} value={query} onChangeText={setQuery} />
         <Chips options={CATEGORIES} value={category} onChange={setCategory} style={{ marginTop: 14 }} />
 
         {SECTIONS.map((section) => (
@@ -79,7 +83,7 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
                     <Ionicons
                       name={isAdded ? 'checkmark' : 'add'}
                       size={18}
-                      color={isAdded ? colors.card : colors.primary}
+                      color={isAdded ? '#FFFFFF' : colors.primary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -91,17 +95,17 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
         {/* Price comparator */}
         <TouchableOpacity activeOpacity={0.9} style={styles.comparatorCard} onPress={onOpenComparator}>
           <View style={styles.comparatorHeader}>
-            <Text style={styles.comparatorTitle}>Price comparator</Text>
-            <Ionicons name="swap-horizontal" size={18} color={colors.card} />
+            <Text style={styles.comparatorTitle}>{t('basket.comparatorTitle')}</Text>
+            <Ionicons name="swap-horizontal" size={18} color="#FFFFFF" />
           </View>
-          <Text style={styles.comparatorSub}>Your basket across 2 stores</Text>
+          <Text style={styles.comparatorSub}>{t('basket.comparatorSubtitle')}</Text>
           {COMPARATOR.map((c) => (
             <View key={c.store} style={styles.comparatorRow}>
               <Text style={styles.comparatorStore}>{c.store}</Text>
               <View style={styles.comparatorRight}>
                 {c.best && (
                   <View style={styles.bestBadge}>
-                    <Text style={styles.bestBadgeText}>Best price</Text>
+                    <Text style={styles.bestBadgeText}>{t('bestPrice')}</Text>
                   </View>
                 )}
                 <Text style={styles.comparatorTotal}>{c.total}</Text>
@@ -113,11 +117,11 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
         {/* Weekly goal */}
         <TouchableOpacity activeOpacity={0.9} style={styles.goalCard} onPress={onOpenBudget}>
           <View style={styles.goalHeader}>
-            <Text style={styles.goalTitle}>Weekly goal</Text>
+            <Text style={styles.goalTitle}>{t('basket.weeklyGoal')}</Text>
             <Text style={styles.goalAmount}>$24.85 / $40.00</Text>
           </View>
           <ProgressBar progress={0.62} color={colors.bottleGreen} track="#FFFFFF55" />
-          <Text style={styles.goalHint}>You have $15.15 left in this week's grocery budget.</Text>
+          <Text style={styles.goalHint}>{t('basket.weeklyGoalHint')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -126,7 +130,7 @@ export default function BasketScreen({ onBack, onNavigate, onBell, onOpenStore, 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  cartBadgeText: { color: colors.card, fontSize: 10, fontWeight: '800' },
+  cartBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
 
   section: { marginTop: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 12 },
@@ -170,7 +174,7 @@ const styles = StyleSheet.create({
     marginTop: 26,
   },
   comparatorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  comparatorTitle: { fontSize: 15, fontWeight: '800', color: colors.card },
+  comparatorTitle: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
   comparatorSub: { fontSize: 12, color: '#9FB7AC', marginTop: 4, marginBottom: 14 },
   comparatorRow: {
     flexDirection: 'row',
@@ -180,16 +184,16 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#1C4436',
   },
-  comparatorStore: { fontSize: 13, color: colors.card },
+  comparatorStore: { fontSize: 13, color: '#FFFFFF' },
   comparatorRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  comparatorTotal: { fontSize: 14, fontWeight: '800', color: colors.card },
+  comparatorTotal: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
   bestBadge: {
     backgroundColor: colors.saladGreen,
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  bestBadgeText: { fontSize: 10, fontWeight: '800', color: colors.bottleGreen },
+  bestBadgeText: { fontSize: 10, fontWeight: '800', color: colors.bottleGreenText },
 
   goalCard: {
     backgroundColor: colors.bannerGreen,
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  goalTitle: { fontSize: 15, fontWeight: '800', color: colors.card },
+  goalTitle: { fontSize: 15, fontWeight: '800', color: colors.bannerGreenText },
   goalAmount: { fontSize: 13, fontWeight: '700', color: colors.bannerGreenText },
   goalHint: { fontSize: 12, color: colors.bannerGreenText, marginTop: 12 },
 });

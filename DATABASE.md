@@ -8,6 +8,7 @@ lista **todas las tablas** y explica qué guarda cada una.
 1. Cómo leer este documento
 2. Cómo está la autenticación (sin Supabase Auth)
 3. Tablas **nuevas** (creadas por nosotros): `expenses`, `budgets`, `user_profile`
+3b. Tablas de **catálogo**: `stores`, `products`, `store_products`, `price_history`
 4. Tablas **heredadas** (del compañero): panorama
 5. Consulta SQL para obtener el esquema real
 6. Políticas de RLS activas
@@ -140,6 +141,85 @@ perfil sin tocar nada de él.
 > Clerk y se leen con `useUser()` (`user.firstName`, `user.lastName`,
 > `user.primaryEmailAddress`, `user.imageUrl`). Cambiarlos usa métodos de Clerk
 > (`user.update()`, `user.setProfileImage()`), no Supabase.
+
+---
+
+## 3b. Tablas de catálogo — `stores`, `products`, `store_products`, `price_history`
+
+Las crea **`supabase/catalog.sql`**. Alimentan `ShoppingStoreScreen`,
+`PriceComparerScreen` y `AffiliatedBusinessesScreen`, que antes tenían arrays
+escritos a mano.
+
+> 📄 **De dónde sale el contenido de `products` está en [`CATALOG.md`](CATALOG.md)**,
+> en la raíz del repo: son los 22 artículos de la Canasta Básica Alimentaria
+> oficial de El Salvador (BCR/ONEC), con su fuente, su fecha y el procedimiento
+> para actualizarlos. Este documento describe **la forma** de las tablas;
+> `CATALOG.md` justifica **el contenido**.
+
+### ⚠️ Son tablas compartidas, no privadas
+
+Esta es la diferencia grande con todo lo anterior. `expenses`, `budgets` y
+`user_profile` tienen una columna `user_id` y su RLS dice *"solo tus filas"*.
+Estas cuatro **no tienen dueño**: son un catálogo que **todos los usuarios
+leen entero** y que **nadie escribe desde la app**.
+
+| | Tablas privadas | Tablas de catálogo |
+|---|---|---|
+| Ejemplo | `expenses`, `budgets` | `products`, `store_products` |
+| ¿Tiene `user_id`? | Sí | No |
+| Quién lee | Solo el dueño | Cualquier usuario logueado |
+| Quién escribe | El dueño, desde la app | Solo `admin`, desde fuera de la app |
+
+**No copies la política de `expenses` a estas tablas.** La escritura se
+controla con el rol de Clerk, vía el helper `public.is_admin()`, que lee
+`public_metadata.role` del mismo JWT que ya se usa para `auth.jwt() ->> 'sub'`.
+
+### 3b.1 `stores` — comercios afiliados
+
+| Columna | Tipo | Qué es |
+|---|---|---|
+| `id` | `uuid` (PK) | Se genera solo |
+| `slug` | `text` (único) | Id estable para el código: `'super-selectos'` |
+| `name` | `text` | Nombre visible |
+| `category` | `text` | `'supermercado'`, `'farmacia'`… texto libre |
+| `cashback_pct` | `numeric(4,2)` | `5.00` = 5 %. Entre 0 y 100 (`check`) |
+| `logo_url`, `address` | `text` (opcional) | |
+| `is_active` | `boolean` | Las inactivas no se listan |
+
+### 3b.2 `products` — catálogo (solo canasta básica)
+
+| Columna | Tipo | Qué es |
+|---|---|---|
+| `id` | `uuid` (PK) | |
+| `slug` | `text` (único) | `'frijol-rojo-de-seda'` |
+| `name` | `text` | **En español.** Es dato, no cadena de UI: no pasa por i18next |
+| `unit` | `text` | `'Libra'`, `'Unidad'`, `'Litro'`. **Canónica**: todos los comercios cotizan lo mismo, si no el comparador miente |
+| `category` | `text` | `'food'`/`'dairy'`/`'meat'`/`'other'` (`check`) — **las mismas de `expenses`** y de `src/constants/categories.js` |
+| `cba_group` | `text` | Uno de los 11 grupos oficiales del BCR (`check`). Trazabilidad en la propia fila |
+| `in_cba_rural` | `boolean` | `true` en los 15 que también están en la canasta rural |
+| `barcode` | `text` (opcional) | EAN. Puente a Open Food Facts |
+| `image_url`, `icon` | `text` | Foto (Supabase Storage) y, mientras no haya, un Ionicon |
+| `is_active` | `boolean` | Para retirar un producto **sin borrarlo** y no romper `price_history` |
+
+### 3b.3 `store_products` — el precio de un producto en un comercio
+
+El corazón del comparador. **PK compuesta `(store_id, product_id)`**: un precio
+vigente por combinación.
+
+| Columna | Tipo | Qué es |
+|---|---|---|
+| `store_id`, `product_id` | `uuid` (PK compuesta) | FK con `on delete cascade` |
+| `price` | `numeric(10,2)` | Mayor a 0 (`check`) |
+| `in_stock` | `boolean` | Si es `false`, no se muestra en el comparador |
+| `source` | `text` | `'manual'`, `'merchant'`, `'import'`, `'official'` (`check`) |
+| `updated_by` | `text` | Clerk user id de quien lo cargó |
+| `updated_at` | `timestamptz` | Se muestra como "Actualizado …" en el comparador |
+
+### 3b.4 `price_history` — histórico
+
+Se llena **sola**: un trigger (`store_products_price_history`) guarda una fila
+cada vez que un precio se inserta o cambia. Ni la app ni el panel tienen que
+acordarse de escribirlo, y ningún cliente tiene permiso de `insert`.
 
 ---
 
@@ -291,6 +371,24 @@ son **10 políticas**. Todas usan la misma regla base:
 
 > `budgets` y `user_profile` no tienen política de `DELETE`: la app nunca
 > borra esas filas, solo las actualiza (`upsert`).
+
+### 6.1b En las tablas de catálogo (regla distinta)
+
+`supabase/catalog.sql` activa RLS en `stores`, `products`, `store_products` y
+`price_history`, con **7 políticas** que NO usan `user_id`:
+
+| Tabla | Política | Acción | Regla |
+|---|---|---|---|
+| `stores` | `stores_select_all` | `SELECT` | `true` — cualquier logueado lee |
+| `products` | `products_select_all` | `SELECT` | `true` |
+| `store_products` | `store_products_select_all` | `SELECT` | `true` |
+| `price_history` | `price_history_select_all` | `SELECT` | `true` |
+| `stores` | `stores_write_admin` | `ALL` | `public.is_admin()` |
+| `products` | `products_write_admin` | `ALL` | `public.is_admin()` |
+| `store_products` | `store_products_write_admin` | `ALL` | `public.is_admin()` |
+
+`price_history` **no tiene política de escritura**: solo la llena el trigger,
+que es `security definer`. Ningún cliente puede insertar ahí.
 
 Además, los scripts hacen `grant select, insert, update [, delete] ... to authenticated`
 → le dan esos permisos base al rol `authenticated` (los usuarios logueados), y la

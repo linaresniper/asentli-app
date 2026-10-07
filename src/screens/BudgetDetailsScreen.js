@@ -1,16 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/ThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import BottomNav from '../components/BottomNav';
 import { ProgressBar, PillButton } from '../components/ui';
 import EmptyState from '../components/EmptyState';
 import { useBudget, useMonthExpenses } from '../hooks/useExpenseData';
 import { sumAmount, budgetBreakdown } from '../lib/expenseMath';
+import { useCategoryLabel } from '../hooks/useCategoryLabel';
 import { formatMoney } from '../lib/dates';
 
 export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEditBudget }) {
+  const { t } = useTranslation('budget');
+  const categoryLabel = useCategoryLabel();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const budgetQ = useBudget();
   const expensesQ = useMonthExpenses();
 
@@ -25,7 +31,7 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
 
   return (
     <View style={styles.flex}>
-      <ScreenHeader title="Budget Details" onBack={onBack} onBell={onBell} />
+      <ScreenHeader title={t('budgetDetails.title')} onBack={onBack} onBell={onBell} />
 
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
@@ -34,29 +40,29 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
           <>
             {/* Available budget */}
             <View style={styles.bigCard}>
-              <Text style={styles.bigLabel}>Available Budget</Text>
+              <Text style={styles.bigLabel}>{t('budgetDetails.availableBudget')}</Text>
               <Text style={styles.bigAmount}>
                 {formatMoney(Math.max(remaining, 0))}{' '}
-                <Text style={styles.bigOf}>of {formatMoney(total)}</Text>
+                <Text style={styles.bigOf}>{t('budgetDetails.of')} {formatMoney(total)}</Text>
               </Text>
               <View style={styles.bigProgressRow}>
-                <ProgressBar progress={usedPct} color={colors.card} track="#FFFFFF33" />
+                <ProgressBar progress={usedPct} color={colors.bannerGreenText} track="#FFFFFF33" />
               </View>
               <Text style={styles.bigPct}>
                 {total > 0
-                  ? `${remainingPct}% remaining this month`
-                  : 'No budget set yet'}
+                  ? t('budgetDetails.remainingThisMonth', { pct: remainingPct })
+                  : t('budgetDetails.noBudgetSet')}
               </Text>
             </View>
 
             {/* Allocated / Remaining */}
             <View style={styles.pairRow}>
               <View style={styles.pairCard}>
-                <Text style={styles.pairLabel}>Allocated</Text>
+                <Text style={styles.pairLabel}>{t('budgetDetails.allocated')}</Text>
                 <Text style={styles.pairValue}>{formatMoney(total)}</Text>
               </View>
               <View style={styles.pairCard}>
-                <Text style={styles.pairLabel}>Remaining</Text>
+                <Text style={styles.pairLabel}>{t('budgetDetails.remaining')}</Text>
                 <Text
                   style={[
                     styles.pairValue,
@@ -69,12 +75,12 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
             </View>
 
             {/* Breakdown */}
-            <Text style={styles.sectionTitle}>Budget Breakdown</Text>
+            <Text style={styles.sectionTitle}>{t('budgetDetails.breakdown')}</Text>
             {spent === 0 ? (
               <EmptyState
                 compact
-                title="Sin gastos este mes"
-                subtitle="Cuando registres gastos, vas a ver acá cómo se reparten por categoría."
+                title={t('budgetDetails.noExpensesTitle')}
+                subtitle={t('budgetDetails.noExpensesSubtitle')}
               />
             ) : (
               breakdown.map((b) => (
@@ -84,12 +90,14 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
                   </View>
                   <View style={styles.breakInfo}>
                     <View style={styles.breakTopRow}>
-                      <Text style={styles.breakName}>{b.label}</Text>
+                      <Text style={styles.breakName}>{categoryLabel(b.key)}</Text>
                       <Text style={styles.breakAmount}>{formatMoney(b.amount)}</Text>
                     </View>
                     <ProgressBar progress={b.pct} color={b.color} />
                     <Text style={styles.breakPct}>
-                      {total > 0 ? `${Math.round(b.pct * 100)}% of budget` : 'set a budget to see %'}
+                      {total > 0
+                        ? t('budgetDetails.pctOfBudget', { pct: Math.round(b.pct * 100) })
+                        : t('budgetDetails.setBudgetToSeePct')}
                     </Text>
                   </View>
                 </View>
@@ -97,7 +105,7 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
             )}
 
             <PillButton
-              label={total > 0 ? 'Edit Budget' : 'Set Budget'}
+              label={total > 0 ? t('budgetDetails.editBudgetBtn') : t('budgetDetails.setBudgetBtn')}
               variant="orange"
               onPress={onEditBudget}
               style={{ marginTop: 12 }}
@@ -111,7 +119,7 @@ export default function BudgetDetailsScreen({ onBack, onNavigate, onBell, onEdit
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
   content: { padding: 20, paddingBottom: 30 },
 
@@ -121,7 +129,7 @@ const styles = StyleSheet.create({
     padding: 22,
   },
   bigLabel: { fontSize: 13, color: colors.bannerGreenText },
-  bigAmount: { fontSize: 30, fontWeight: '800', color: colors.card, marginTop: 6 },
+  bigAmount: { fontSize: 30, fontWeight: '800', color: colors.bannerGreenText, marginTop: 6 },
   bigOf: { fontSize: 14, fontWeight: '600', color: colors.bannerGreenText },
   bigProgressRow: { marginTop: 16, marginBottom: 8 },
   bigPct: { fontSize: 12, color: colors.bannerGreenText },

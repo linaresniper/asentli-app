@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { useSSO } from '@clerk/clerk-expo';
+import i18n from '../i18n';
 
 // Required so the auth popup can dismiss itself and hand control back to the app.
 WebBrowser.maybeCompleteAuthSession();
@@ -46,7 +47,7 @@ export function useGoogleAuth() {
       setError(
         err?.errors?.[0]?.longMessage ||
           err?.errors?.[0]?.message ||
-          'No se pudo continuar con Google. Intentá de nuevo.'
+          i18n.t('auth:errors.googleFailed')
       );
       return false;
     } finally {
